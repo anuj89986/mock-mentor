@@ -19,6 +19,10 @@ const UserSchema = new Schema<IUser>({
     password:{
         type : String,
         required:[true,"Password is Required"]
+    },
+    createdAt:{
+        type:Date,
+        default:Date.now
     }
 })
 
