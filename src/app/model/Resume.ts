@@ -2,8 +2,8 @@ import mongoose,{Schema,Document} from "mongoose";
 
 export interface IResume extends Document{
     userId : mongoose.Types.ObjectId;
-    extractedText : String;
-    fileUrl : String;
+    extractedText : string;
+    fileUrl : string;
     createdAt?:Date;
 }
 

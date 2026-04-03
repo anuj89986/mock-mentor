@@ -1,9 +1,9 @@
 import mongoose,{Schema,Document} from "mongoose";
 
 export interface IUser extends Document{
-    name:String;
-    email:String;
-    password?:String;
+    name:string;
+    email:string;
+    password?:string;
     createdAt?:Date
 }
 
