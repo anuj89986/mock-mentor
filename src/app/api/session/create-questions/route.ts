@@ -1,11 +1,12 @@
 export const runtime = "nodejs";
 
+import dbConnect from "@/lib/dbConnect";
 import { generateQuestions,parseQuestions } from "@/lib/gemini";
 import { NextResponse } from "next/server";
-import { log } from "node:console";
 import pdf from "pdf-parse/lib/pdf-parse.js";
 
 export async function POST(req: Request) {
+  dbConnect();
   const formData = await req.formData();
   const fileEntry = formData.get("resume") as File | null;
 
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
   try {
     const questions = await generateQuestions(result.text);
     const parsedQuestions = await parseQuestions(questions);
+    // SessionModel.create({})
     return NextResponse.json({ questions: parsedQuestions });
   } catch (error) {
     console.error("Error generating questions:", error);
