@@ -3,8 +3,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { signUpSchema } from "@/Schemas/signUpSchema";
+import {signIn} from "next-auth/react";
 import * as z from "zod";
 import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc";
 import {
   Card,
   CardContent,
@@ -22,8 +24,10 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const page = () => {
+  const router = useRouter();
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -46,24 +50,17 @@ const page = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_60%)]" />
 
-      {/* 🔥 Gradient Background Glow */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(120,119,198,0.15),transparent_60%)]" />
-
-      <Card className="w-full max-w-md backdrop-blur-xl bg-background/80 border shadow-2xl rounded-2xl">
-        
-        {/* Header */}
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-3xl font-bold tracking-tight">
+      <Card className="w-full max-w-md border bg-card text-card-foreground shadow-xl rounded-xl">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-semibold">
             Create account
           </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Start your journey with us 🚀
-          </CardDescription>
+          <CardDescription>Enter your details to continue</CardDescription>
         </CardHeader>
 
-        {/* Form */}
         <CardContent>
           <form
             id="form-rhf-demo"
@@ -71,8 +68,6 @@ const page = () => {
             className="space-y-5"
           >
             <FieldGroup className="space-y-4">
-
-              {/* Name */}
               <Controller
                 name="name"
                 control={form.control}
@@ -82,7 +77,7 @@ const page = () => {
                     <Input
                       {...field}
                       placeholder="John Doe"
-                      className="transition-all focus-visible:ring-2 focus-visible:ring-primary/60"
+                      className="focus-visible:ring-2 focus-visible:ring-ring"
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -91,7 +86,6 @@ const page = () => {
                 )}
               />
 
-              {/* Email */}
               <Controller
                 name="email"
                 control={form.control}
@@ -101,11 +95,8 @@ const page = () => {
                     <Input
                       {...field}
                       placeholder="you@example.com"
-                      className="transition-all focus-visible:ring-2 focus-visible:ring-primary/60"
+                      className="focus-visible:ring-2 focus-visible:ring-ring"
                     />
-                    <FieldDescription>
-                      We respect your privacy.
-                    </FieldDescription>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -113,7 +104,6 @@ const page = () => {
                 )}
               />
 
-              {/* Password */}
               <Controller
                 name="password"
                 control={form.control}
@@ -123,8 +113,11 @@ const page = () => {
                     <Input
                       {...field}
                       type="password"
-                      className="transition-all focus-visible:ring-2 focus-visible:ring-primary/60"
+                      className="focus-visible:ring-2 focus-visible:ring-ring"
                     />
+                    <FieldDescription>
+                      Enter a password with at least 6 characters.
+                    </FieldDescription>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -132,7 +125,6 @@ const page = () => {
                 )}
               />
 
-              {/* Confirm Password */}
               <Controller
                 name="confirmPassword"
                 control={form.control}
@@ -142,7 +134,7 @@ const page = () => {
                     <Input
                       {...field}
                       type="password"
-                      className="transition-all focus-visible:ring-2 focus-visible:ring-primary/60"
+                      className="focus-visible:ring-2 focus-visible:ring-ring"
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -150,31 +142,42 @@ const page = () => {
                   </Field>
                 )}
               />
-
             </FieldGroup>
           </form>
         </CardContent>
 
-        {/* Footer */}
         <CardFooter className="flex flex-col gap-3">
-          
-          <Button
-            type="submit"
-            form="form-rhf-demo"
-            className="w-full text-base font-semibold shadow-md hover:shadow-lg transition-all"
-          >
+          <Button type="submit" form="form-rhf-demo" className="w-full">
             Create Account
           </Button>
 
+          <div className="flex items-center my-6 w-full">
+            <div className="grow border-t border-gray-500"></div>
+            <span className="mx-4 text-gray-400 text-xs uppercase tracking-widest">
+              OR
+            </span>
+            <div className="grow border-t border-gray-500"></div>
+          </div>
+
           <Button
             type="button"
-            variant="ghost"
-            onClick={() => form.reset()}
-            className="w-full text-muted-foreground"
+            variant="outline"
+            className="w-full"
+            onClick={() => signIn("google", { callbackUrl: "/" })}
           >
-            Reset form
+            <FcGoogle />
+            Sign in with Google
           </Button>
 
+          <p className="text-sm text-muted-foreground text-center pt-1">
+            Already have an account?{" "}
+            <span
+              className="underline underline-offset-4 hover:cursor-pointer"
+              onClick={() => router.push("/auth/signin")}
+            >
+              Login
+            </span>
+          </p>
         </CardFooter>
       </Card>
     </div>
