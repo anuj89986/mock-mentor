@@ -2,7 +2,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
-import { signUpSchema } from "@/Schemas/signUpSchema";
 import {signIn} from "next-auth/react";
 import * as z from "zod";
 import { toast } from "sonner";
@@ -24,29 +23,33 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { logInSchema } from "@/Schemas/logInSchema";
 
 const page = () => {
   const router = useRouter();
-  const form = useForm<z.infer<typeof signUpSchema>>({
-    resolver: zodResolver(signUpSchema),
+  const form = useForm<z.infer<typeof logInSchema>>({
+    resolver: zodResolver(logInSchema),
     defaultValues: {
-      name: "",
       email: "",
       password: "",
-      confirmPassword: "",
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
-    try {
-      await signIn("credentials", {
-        email: data.email,
-        password: data.password
-      });
-      toast.success("Sign in successful.");
-    } catch (error) {
-      toast.error("Sign in failed.");
+  const onSubmit = async (data: z.infer<typeof logInSchema>) => {
+    const result = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+      callbackUrl: "/",
+    });
+
+    if (result?.error) {
+      toast.error(result.error);
+      return;
     }
+
+    toast.success("Sign in successful.");
+    router.push(result?.url || "/");
   };
 
   return (

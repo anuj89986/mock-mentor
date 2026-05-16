@@ -37,8 +37,8 @@ const authOptions:NextAuthOptions = {
                         email: user.email,
                         name: user.name
                     }
-                } catch (error) {
-                    throw new Error("Error occurred while fetching user");
+                } catch (error: any) {
+                    throw new Error(error?.message || "Error occurred while fetching user");
                 }
             }
             }
@@ -88,8 +88,8 @@ const authOptions:NextAuthOptions = {
         maxAge: 24 * 60 * 60,
     },
     pages:{
-        signIn: "/auth/login",
-        error: "/failed"
+        signIn: "/auth/signin",
+        error: "/auth/signin"
     },
     secret: process.env.NEXTAUTH_SECRET
 
