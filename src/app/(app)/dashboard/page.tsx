@@ -2,33 +2,28 @@
 import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { 
-  BarChart3, 
-  BookOpen, 
   Brain, 
   Clock, 
-  Download, 
-  LogOut, 
   Plus, 
-  Settings, 
   TrendingUp,
   CheckCircle,
   AlertCircle,
   Zap,
-  Menu,
-  X
 } from 'lucide-react'
-import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function DashboardPage() {
   const { data: session } = useSession()
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const router = useRouter()
 
   if (!session) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <p className="text-white">Please sign in to access the dashboard.</p>
+      <div className="flex items-center justify-center min-h-screen bg-black flex-col gap-6">
+        <div className="text-white">Please sign in to access the dashboard.</div>
+        <div><Button onClick={() => router.push('/')}>Go to Home</Button></div>
       </div>
+      
     )
   }
 
@@ -54,54 +49,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden">
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white/5 border-r border-white/10 transition-all duration-300 flex flex-col`}>
-        <div className="p-6 border-b border-white/10 flex items-center justify-between">
-          {sidebarOpen && (
-            <div className="flex items-center gap-2">
-              <Brain className="w-6 h-6 text-blue-500" />
-              <span className="font-bold">Mentor</span>
-            </div>
-          )}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1 hover:bg-white/10 rounded-lg transition"
-          >
-            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          {[
-            { icon: BarChart3, label: 'Dashboard', active: true },
-            { icon: Zap, label: 'New Interview' },
-            { icon: BookOpen, label: 'Sessions' },
-            { icon: TrendingUp, label: 'Progress' },
-            { icon: Download, label: 'Resume' },
-            { icon: Settings, label: 'Settings' },
-          ].map((item) => (
-            <button
-              key={item.label}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                item.active
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:bg-white/5'
-              }`}
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              {sidebarOpen && <span>{item.label}</span>}
-            </button>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-white/10">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg transition">
-            <LogOut className="w-5 h-5 shrink-0" />
-            {sidebarOpen && <span>Sign Out</span>}
-          </button>
-        </div>
-      </aside>
-
+  
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         {/* Top Bar */}

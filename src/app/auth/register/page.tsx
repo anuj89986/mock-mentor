@@ -166,7 +166,7 @@ const page = () => {
             onClick={() => signIn("google", { callbackUrl: "/" })}
           >
             <FcGoogle />
-            Sign in with Google
+            Sign up with Google
           </Button>
 
           <p className="text-sm text-muted-foreground text-center pt-1">
