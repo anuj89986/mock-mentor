@@ -50,7 +50,7 @@ const page = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 min-w-screen">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_60%)]" />
 
       <Card className="w-full max-w-md border bg-card text-card-foreground shadow-xl rounded-xl">

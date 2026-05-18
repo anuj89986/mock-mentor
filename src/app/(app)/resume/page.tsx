@@ -13,6 +13,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { useState ,useRef } from 'react'
 import { Spinner } from "@/components/ui/spinner"
+import axios from 'axios'
 
 export default function ResumePage() {
   const { data: session } = useSession()
@@ -52,11 +53,15 @@ export default function ResumePage() {
     setUploading(true)
 
     try {
-      // TODO: replace with your API call
-      await new Promise((r) => setTimeout(r, 900))
-      setSuccess(true)
-      setUploadedFile(null)
-      setTimeout(() => setSuccess(false), 2500)
+      const formData = new FormData()
+      formData.append('resume', uploadedFile)
+      const res = await axios.post('/api/resume/upload', formData)
+      if(res.status === 200){
+        setSuccess(true)
+        setError('')
+      } else {
+        setError('Failed to upload resume. Please try again.')
+      }
     } catch {
       setError('Failed to upload resume. Please try again.')
     } finally {

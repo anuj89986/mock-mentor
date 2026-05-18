@@ -63,8 +63,16 @@ const authOptions:NextAuthOptions = {
             }
             return true;
         },
-        async jwt({token,user}){
-            if(user){
+        async jwt({token,account,user}){
+            if(account?.provider == "google"){
+                await dbConnect();
+                const dbUser = await UserModel.findOne({email: token.email});
+                if(dbUser){
+                    token.id = dbUser._id.toString();
+                    token.email = dbUser.email;
+                    token.name = dbUser.name;
+                }
+            } else if(user){
                 token.id = user.id;
                 token.email = user.email;
                 token.name = user.name;
