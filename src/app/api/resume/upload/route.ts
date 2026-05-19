@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 import dbConnect from "@/lib/dbConnect";
 import { NextResponse } from "next/server";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadFileToCloudinary} from "@/lib/cloudinary";
 import pdf from "pdf-parse/lib/pdf-parse.js";
 import ResumeModel from "@/model/Resume";
 import authOptions from "@/lib/auth";
@@ -34,13 +34,13 @@ export async function POST(req: Request) {
         if(!result.text || result.text.trim() === ""){
             return NextResponse.json({ error: "Unable to extract text from PDF" }, { status: 400 });
         }
-        const fileUrl = await uploadToCloudinary(buffer);
+        const res = await uploadFileToCloudinary(buffer);
 
-        if(!fileUrl){
+        if(!res.secure_url || !res.public_id){
             return NextResponse.json({ error: "Failed to save resume data" }, { status: 500 });
         }
 
-        const uploadedResume = await ResumeModel.create({ extractedText: result.text, fileUrl, userId });
+        const uploadedResume = await ResumeModel.create({ extractedText: result.text, fileUrl: res.secure_url, userId , publicId:res.public_id });
 
         return NextResponse.json({ message: "Resume uploaded successfully", uploadedResume }, { status: 200 });
     } catch (error) {

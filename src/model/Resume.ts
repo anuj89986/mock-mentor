@@ -4,6 +4,7 @@ export interface IResume extends Document{
     userId : mongoose.Types.ObjectId;
     extractedText : string;
     fileUrl : string;
+    publicId?:string;
     createdAt?:Date;
 }
 
@@ -19,6 +20,9 @@ const ResumeSchema = new Schema<IResume>({
     fileUrl:{
         type:String,
         required:true
+    },
+    publicId:{
+        type:String
     },
     createdAt:{
         type:Date,

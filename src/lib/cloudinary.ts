@@ -8,15 +8,20 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_SECRET
 });
 
-const uploadToCloudinary = async (file: Buffer): Promise<string> => {
+interface CloudinaryUploadResult {
+    secure_url: string;
+    public_id: string;
+}
+
+const uploadFileToCloudinary = async (file: Buffer): Promise<CloudinaryUploadResult> => {
     try {
-        const result = new Promise<string>((resolve, reject) => {
+        const result = new Promise<CloudinaryUploadResult>((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
-                { resource_type: 'raw', folder: 'resumes' },
+                { resource_type: 'raw', folder: 'resumes', format: 'pdf' },
                 (error, result) => {
                     if (error) return reject(error);
-                    if (!result?.secure_url) return reject(new Error('Cloudinary did not return secure_url'));
-                    resolve(result.secure_url);
+                    if (!result?.secure_url || !result?.public_id) return reject(new Error('Cloudinary did not return required fields'));
+                    resolve({ secure_url: result.secure_url, public_id: result.public_id });
                 }
             );
             Readable.from(file).pipe(uploadStream);
@@ -28,5 +33,14 @@ const uploadToCloudinary = async (file: Buffer): Promise<string> => {
     }
 };
 
-export { uploadToCloudinary };
+const deleteFromCloudinary = async(publicId : string) : Promise<void> => {
+    try {
+        await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+    } catch (error) {
+        console.error('Cloudinary delete error:', error);
+        throw error;
+    }
+};
+
+export { uploadFileToCloudinary, deleteFromCloudinary };
 export default cloudinary;
