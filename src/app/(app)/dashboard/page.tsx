@@ -53,7 +53,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         {/* Top Bar */}
-        <div className="border-b border-white/10 bg-white/5 backdrop-blur-md sticky top-0 z-10">
+        <div className="border-b border-white/10 bg-white/5 backdrop-blur-md sticky top-0 z-10 max-w-screen">
           <div className="flex items-center justify-between p-6">
             <div>
               <h1 className="text-3xl font-bold">Welcome back, {session.user?.name}</h1>

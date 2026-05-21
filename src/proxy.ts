@@ -10,14 +10,12 @@ export async function proxy(request: NextRequest) {
     '/auth/register'
   ];
   if(publicRoutes.includes(pathname)){
-    console.log(`Public route accessed: ${pathname}`);
     return NextResponse.next();
   }
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
     console.log(`Unauthorized access attempt to: ${pathname}`);
     const signInUrl = new URL('/auth/signin', request.url);
-    signInUrl.searchParams.set('callbackUrl', request.url);
     return NextResponse.redirect(signInUrl);
   }
   return NextResponse.next();

@@ -44,7 +44,7 @@ const Navbar = () => {
               key={item.label}
               href={item.href}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                pathname === item.href
+                pathname.startsWith(item.href)
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-400 hover:bg-white/5'
               }`}

@@ -1,15 +1,15 @@
 import mongoose,{Schema,Document} from "mongoose";
 
 
-export interface IQuestion {
-    questionNumber : number;
-    questionText : string;
-}
+// export interface IQuestion {
+//     questionNumber : number;
+//     questionText : string;
+// }
 
 export interface ISession extends Document{
     userId : mongoose.Types.ObjectId;
     resumeId : mongoose.Types.ObjectId;
-    questions : IQuestion[];
+    interviewStyle : string;
     status : string;
     createdAt?:Date;
 }
@@ -23,12 +23,17 @@ const SessionSchema = new Schema<ISession>({
         type:mongoose.Types.ObjectId,
         ref:"Resume"
     },
-    questions:{
-        type:[{
-            questionNumber : Number,
-            questionText : String
-        }],
-        default:[]
+    // questions:{
+    //     type:[{
+    //         questionNumber : Number,
+    //         questionText : String
+    //     }],
+    //     default:[]
+    // },
+    interviewStyle:{
+        type:String,
+        enum:["technical","behavioral","mixed"],
+        default:"technical"
     },
     status:{
         type:String,
