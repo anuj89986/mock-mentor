@@ -53,12 +53,10 @@ Candidate's answer: "${userAnswer}"
 Follow-up number: ${followUpCount + 1} of 2
 
 Your job:
-- Give 1 line of brief feedback on the answer (honest, not overly positive)
 - Ask exactly ONE sharp follow-up question that digs deeper into their answer
 
 Return ONLY JSON in this format:
 {
-  "feedback": "...",
   "followUpQuestion": "..."
 }
 
@@ -89,6 +87,6 @@ export function parseFollowUp(raw: string) {
     return JSON.parse(cleaned);
   } catch (error) {
     console.error("Follow-up Parse Error:", error);
-    return { feedback: "", followUpQuestion: "" };
+    return { followUpQuestion: "" };
   }
 }

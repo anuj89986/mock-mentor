@@ -1,18 +1,15 @@
+"use client";
+import axios from "axios";
 import Link from "next/link";
 import {
   ArrowLeft,
   Bot,
-  CheckCircle2,
-  FileText,
   MessageSquare,
   Sparkles,
   Send,
-  Shield,
   SparklesIcon,
   User,
-  Wand2,
 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,60 +19,134 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { useState, use, useEffect } from "react";
 
 interface PageProps {
   params: Promise<{
     sessionId: string;
   }>;
 }
+interface IQuestion {
+  questionNumber: number;
+  questionText: string;
+}
+interface IMessage {
+  role: "assistant" | "user";
+  title: string;
+  content: string | undefined;
+}
 
-const messages = [
-  {
-    id: 1,
-    role: "assistant",
-    title: "Mock Mentor",
-    content:
-      "Hi, I’m ready to help you practice. I’ll keep this session focused, structured, and tailored to your interview style.",
-    time: "Just now",
-  },
-  {
-    id: 2,
-    role: "user",
-    title: "You",
-    content:
-      "I want to practice behavioral questions today, but keep the conversation natural and close to a real interview.",
-    time: "Just now",
-  },
-  {
-    id: 3,
-    role: "assistant",
-    title: "Mock Mentor",
-    content:
-      "Perfect. I’ll start with one opening question, then follow up based on your answer. We can keep it conversational while still being rigorous.",
-    time: "Just now",
-  },
-];
+const page = ({ params }: PageProps) => {
+  const { sessionId } = use(params);
+  const [messages, setMessages] = useState<IMessage[]>([]);
+  const [initialQuestions, setInitialQuestions] = useState<IQuestion[]>([]);
+  const [initialQuestionCounter, setInitialQuestionCounter] =
+    useState<number>(1);
+  const [isInterviewCompleted, setisInterviewCompleted] =
+    useState<Boolean>(false);
+  const [answer, setAnswer] = useState<string>("");
+  const [followUpCounter, setFollowUpCounter] = useState<number>(0);
+  const [initialResponse, setInitialResponse] = useState<string>("");
 
-const sidebarItems = [
-  {
-    icon: FileText,
-    title: "Resume context",
-    description: "Your background is loaded for this session.",
-  },
-  {
-    icon: Shield,
-    title: "Session mode",
-    description: "Chat-first interview practice with a calm, focused flow.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Goal",
-    description: "Practice responses, improve clarity, and keep momentum.",
-  },
-];
+  useEffect(() => {
+    const fetchInitialQuestions = async () => {
+      try {
+        const res = await axios.get(
+          `/api/session/${sessionId}/initial-question`,
+        );
+        const questions: IQuestion[] = res.data.initialQuestions;
+        setInitialQuestions(questions);
+        if (questions.length > 0) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              title: "Mock Mentor",
+              content: questions[0].questionText,
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("Error fetching initial questions:", error);
+      }
+    };
+    fetchInitialQuestions();
+  }, []);
 
-const page = async ({ params }: PageProps) => {
-  const { sessionId } = await params;
+  const fetchfollowUpQuestion = async (
+    originalQuestion: string,
+    userAnswer: string,
+    followUpCount: number,
+  ) => {
+    try {
+      const res = await axios.post(
+        `/api/session/${sessionId}/followup-question`,
+        { originalQuestion, userAnswer, followUpCount },
+      );
+      const question = res.data.followUpQuestion;
+      return question.followUpQuestion;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleResponse = async (response: { text: string }) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        title: "you",
+        content: response.text,
+      },
+    ]);
+    setAnswer("");
+    const currentAnswer = response.text;
+    if (followUpCounter < 2) {
+      const baseAnswer = followUpCounter == 0 ? currentAnswer : initialResponse;
+
+      const question = await fetchfollowUpQuestion(
+        initialQuestions[initialQuestionCounter - 1].questionText,
+        baseAnswer,
+        followUpCounter,
+      );
+
+      if (followUpCounter == 0) setInitialResponse(currentAnswer);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          title: "Mock Mentor",
+          content: question,
+        },
+      ]);
+      setFollowUpCounter((prev) => prev + 1);
+    } else if (
+      initialQuestionCounter < initialQuestions.length &&
+      followUpCounter > 1
+    ) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          title: "Mock Mentor",
+          content: initialQuestions[initialQuestionCounter].questionText,
+        },
+      ]);
+      setInitialQuestionCounter((prev) => prev + 1);
+      setFollowUpCounter(0);
+    } else {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          title: "Mock Mentor",
+          content: "Interview is Over Now You can Exit",
+        },
+      ]);
+      setisInterviewCompleted(true);
+    }
+  };
 
   return (
     <div className="relative flex-1 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))]">
@@ -97,7 +168,8 @@ const page = async ({ params }: PageProps) => {
                 Chat with your mock mentor
               </h1>
               <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                A focused, conversational interview space with the same visual tone as the rest of the app.
+                A focused, conversational interview space with the same visual
+                tone as the rest of the app.
               </p>
             </div>
 
@@ -133,18 +205,19 @@ const page = async ({ params }: PageProps) => {
             </div>
             <CardTitle className="text-lg">Mock Mentor</CardTitle>
             <CardDescription>
-              Static chat layout only for now. No sending, no state, just the visual shell.
+              Static chat layout only for now. No sending, no state, just the
+              visual shell.
             </CardDescription>
           </CardHeader>
 
           <CardContent className="flex flex-1 flex-col">
             <div className="flex-1 space-y-4 overflow-y-auto">
-              {messages.map((message) => {
+              {messages.map((message, idx) => {
                 const isAssistant = message.role === "assistant";
 
                 return (
                   <div
-                    key={message.id}
+                    key={idx}
                     className={`flex items-start gap-3 ${
                       isAssistant ? "justify-start" : "justify-end"
                     }`}
@@ -164,9 +237,9 @@ const page = async ({ params }: PageProps) => {
                     >
                       <div className="mb-1 flex items-center justify-between gap-3">
                         <p className="text-sm font-semibold">{message.title}</p>
-                        <span className="text-[11px] text-muted-foreground">
+                        {/* <span className="text-[11px] text-muted-foreground">
                           {message.time}
-                        </span>
+                        </span> */}
                       </div>
                       <p className="text-sm leading-6 text-muted-foreground">
                         {message.content}
@@ -184,18 +257,33 @@ const page = async ({ params }: PageProps) => {
             </div>
 
             <div className="mt-4 rounded-3xl border border-border/70 bg-card/80 p-4 shadow-lg backdrop-blur-xl">
-
               <div className="space-y-3">
-                <Textarea
-                  placeholder="Type your answer here..."
-                  className="min-h-28 rounded-2xl border-border/70 bg-background/60 px-4 py-3 text-sm shadow-inner shadow-black/5 placeholder:text-muted-foreground/70"
-                  disabled
-                />
-
-                <Button className="gap-2 self-end sm:self-auto" disabled>
-                  <Send className="size-4" />
-                  Send
-                </Button>
+                {isInterviewCompleted ? (
+                  <div className="flex items-center gap-2 text-green-500">
+                    <SparklesIcon className="size-4" />
+                    <p>Interview completed!</p>
+                  </div>
+                ) : (
+                  <div>
+                    <Textarea
+                      onChange={(e) => setAnswer(e.target.value)}
+                      placeholder="Type your answer here..."
+                      className="min-h-28 rounded-2xl border-border/70 bg-background/60 px-4 py-3 text-sm shadow-inner shadow-black/5 placeholder:text-muted-foreground/70"
+                      value={answer}
+                    />
+                    <Button
+                      onClick={() =>
+                        handleResponse({
+                          text: answer,
+                        })
+                      }
+                      className="gap-2 self-end sm:self-auto"
+                    >
+                      <Send className="size-4" />
+                      Send
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -204,5 +292,4 @@ const page = async ({ params }: PageProps) => {
     </div>
   );
 };
-
 export default page;

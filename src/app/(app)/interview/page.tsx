@@ -14,7 +14,6 @@ import {
   Calendar,
   Upload,
   CheckCircle,
-  Check,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
