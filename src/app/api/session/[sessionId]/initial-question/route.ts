@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(req : Request, { params }: { params: Promise<{ sessionId: string }> }) {
     const { sessionId } = await params;
-    dbConnect();
+    await dbConnect();
     const session = await SessionModel.findById(sessionId);
     if (!session) {
         return NextResponse.json({ error: "Session not found" }, { status: 404 });

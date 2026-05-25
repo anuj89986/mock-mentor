@@ -35,6 +35,11 @@ interface IMessage {
   title: string;
   content: string | undefined;
 }
+interface IResponse {
+  question : string;
+  response : string;
+  questionType : 'initial' | 'followUp';
+}
 
 const page = ({ params }: PageProps) => {
   const { sessionId } = use(params);
@@ -47,6 +52,8 @@ const page = ({ params }: PageProps) => {
   const [answer, setAnswer] = useState<string>("");
   const [followUpCounter, setFollowUpCounter] = useState<number>(0);
   const [initialResponse, setInitialResponse] = useState<string>("");
+  const [allResponses, setAllResponses] = useState<IResponse[]>([]);
+  const [followUpQuestion,setFollowUpQuestion] = useState<string>("");
 
   useEffect(() => {
     const fetchInitialQuestions = async () => {
@@ -95,12 +102,26 @@ const page = ({ params }: PageProps) => {
       ...prev,
       {
         role: "user",
-        title: "you",
+        title: "You",
         content: response.text,
       },
     ]);
     setAnswer("");
     const currentAnswer = response.text;
+    if(followUpCounter == 0) {
+      setAllResponses((prev)=>[...prev,{
+          question : initialQuestions[initialQuestionCounter - 1].questionText,
+          response : currentAnswer,
+          questionType : 'initial'
+        }])
+    }
+    else{
+      setAllResponses((prev)=>[...prev,{
+        question : followUpQuestion,
+        response : currentAnswer,
+        questionType : 'followUp'
+      }])
+    }
     if (followUpCounter < 2) {
       const baseAnswer = followUpCounter == 0 ? currentAnswer : initialResponse;
 
@@ -120,6 +141,7 @@ const page = ({ params }: PageProps) => {
           content: question,
         },
       ]);
+      setFollowUpQuestion(question);
       setFollowUpCounter((prev) => prev + 1);
     } else if (
       initialQuestionCounter < initialQuestions.length &&

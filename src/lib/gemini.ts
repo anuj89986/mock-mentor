@@ -20,7 +20,7 @@ Interview style requested: ${interviewStyle}
 - "behavioural": past experiences, teamwork, leadership  
 - "mixed": balance of both
 
-Generate exactly 5 questions tailored to this specific candidate.
+Generate exactly 2 questions tailored to this specific candidate.
 
 Return ONLY JSON:
 [{ "questionNumber": 1, "questionText": "..." }]
