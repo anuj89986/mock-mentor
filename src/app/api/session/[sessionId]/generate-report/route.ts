@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateReport, parseReport } from "@/lib/openRouter";
 import SessionModel from "@/model/Session";
+import ReportModel from "@/model/Report";
 import "@/model/Resume";
 import DbConnect from "@/lib/dbConnect";
 export async function POST(request : Request ,  { params }: { params: Promise<{ sessionId: string }> }) {
@@ -23,5 +24,11 @@ export async function POST(request : Request ,  { params }: { params: Promise<{ 
         return NextResponse.json({ error: "Failed to generate report" }, { status: 500 });
     }
     const cleanedReport = parseReport(report);
-    return NextResponse.json({ report : cleanedReport });
+    const reportDoc = await ReportModel.create({
+        sessionId,
+        userId: session.userId,
+        ...cleanedReport
+    });
+
+    return NextResponse.json({ report : reportDoc }, { status: 200 });
 }

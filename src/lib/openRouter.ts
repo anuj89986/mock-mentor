@@ -30,6 +30,14 @@ Evaluate:
 - depth of understanding
 - problem solving ability
 
+IMPORTANT:
+- ALL scores must be integers between 1 and 100.
+- Never return scores in 1-10 scale.
+- Use realistic evaluation scoring.
+- 100 means exceptional/expert-level performance.
+- 50 means average.
+- Below 30 means poor performance.
+
 Resume:
 ${resumeText}
 
@@ -45,7 +53,6 @@ Return format:
   "technicalScore": number,
   "communicationScore": number,
   "confidenceScore": number,
-
   "resumeConsistencyScore": number,
 
   "strengths": [],
@@ -53,6 +60,12 @@ Return format:
   "weaknesses": [],
 
   "summary": "",
+
+  "hireRecommendation": {
+    "decision": "",
+    "level": "",
+    "recommendedConfidence": 0
+  },
 
   "improvements": [],
 
