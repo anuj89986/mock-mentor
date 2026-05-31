@@ -14,29 +14,29 @@ export async function generateReport(resumeText: string, interviewData: any) {
   const prompt = `
 You are an expert AI interview evaluator.
 
-Analyze the candidate deeply based on:
+Analyze the candidate based on:
 1. Resume
 2. Interview responses
 3. Follow-up performance
 
-Follow-up questions are more important because they test depth.
-
-Evaluate:
-- technical skills
-- communication
-- confidence
-- practical knowledge
-- consistency with resume
-- depth of understanding
-- problem solving ability
-
-IMPORTANT:
+IMPORTANT RULES:
+- Follow-up answers are more important than initial answers.
+- Be realistic and strict in evaluation.
+- Keep all explanations concise and professional.
+- Return ONLY valid JSON.
+- Do not use markdown.
+- Do not add \`\`\`json.
+- Ensure all strings are properly escaped.
+- Keep summaries short.
+- Keep question analysis brief (max 1 short sentence).
 - ALL scores must be integers between 1 and 100.
-- Never return scores in 1-10 scale.
-- Use realistic evaluation scoring.
-- 100 means exceptional/expert-level performance.
-- 50 means average.
-- Below 30 means poor performance.
+
+SCORING GUIDE:
+- 90-100 = Exceptional / expert-level
+- 70-89 = Strong
+- 50-69 = Average
+- 30-49 = Weak
+- Below 30 = Poor
 
 Resume:
 ${resumeText}
@@ -44,16 +44,14 @@ ${resumeText}
 Interview Data:
 ${JSON.stringify(interviewData)}
 
-Return STRICT JSON ONLY.
-
-Return format:
+Return EXACTLY this JSON structure:
 
 {
-  "overallScore": number,
-  "technicalScore": number,
-  "communicationScore": number,
-  "confidenceScore": number,
-  "resumeConsistencyScore": number,
+  "overallScore": 0,
+  "technicalScore": 0,
+  "communicationScore": 0,
+  "confidenceScore": 0,
+  "resumeConsistencyScore": 0,
 
   "strengths": [],
 
@@ -81,21 +79,30 @@ Return format:
       "question": "",
       "questionType": "",
       "analysis": "",
-      "score": number
+      "score": 0
     }
   ],
 
   "finalVerdict": ""
 }
+
+STRICT RULES:
+- Do not omit any field.
+- Do not add extra fields.
+- All arrays must contain concise items only.
+- questionAnalysis.analysis must be very short.
+- finalVerdict must be under 80 words.
 `;
-  try {
+
+   try {
     const completion = await openrouter.chat.completions.create({
       model: "nvidia/nemotron-3-super-120b-a12b:free",
 
       messages: [
         {
           role: "system",
-          content: "You are a strict interview evaluator.",
+          content:
+            "You are a strict interview evaluator. Return ONLY valid JSON.",
         },
         {
           role: "user",
@@ -103,25 +110,60 @@ Return format:
         },
       ],
 
-      temperature: 0.3,
-      max_tokens: 3000,
+      temperature: 0.2,
+      max_tokens: 4000,
     });
+    const raw = completion.choices?.[0]?.message?.content;
 
-    return completion.choices[0].message.content;
-  } catch (error) {
-    console.error("OpenRouter Error:", error);
+    return raw;
+  } catch (error: any) {
+    console.error("OPENROUTER FULL ERROR:");
+
+    // important
+    console.error(error);
+
+    // api response
+    console.error(error?.response?.data);
+
+    // message
+    console.error(error?.message);
+
     return null;
   }
 }
-export function parseReport(raw: string) {
+export function parseReport(raw: any) {
   try {
-    if(typeof raw !== "string") {
+    if (!raw) {
+      throw new Error("Empty response");
+    }
+
+    if (typeof raw !== "string") {
       raw = JSON.stringify(raw);
     }
-    const cleaned = raw.replace(/```json|```/g, "").trim();
+
+    const cleaned = raw
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    // detect truncation
+    if (!cleaned.endsWith("}")) {
+      console.error("JSON LOOKS TRUNCATED");
+    }
+
     return JSON.parse(cleaned);
-  } catch (error) {
-    console.error("Report Parse Error:", error);
-    return { Report: "" };
+  } catch (error: any) {
+    console.error("PARSE ERROR:");
+    console.error(error.message);
+
+    // very useful
+    console.error("RAW THAT FAILED:");
+    console.error(raw);
+
+    return {
+      Report: "",
+      parseError: true,
+      errorMessage: error.message,
+    };
   }
 }

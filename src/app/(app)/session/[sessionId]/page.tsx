@@ -48,14 +48,15 @@ const page = ({ params }: PageProps) => {
   const [initialQuestions, setInitialQuestions] = useState<IQuestion[]>([]);
   const [initialQuestionCounter, setInitialQuestionCounter] =
     useState<number>(1);
-  const [isInterviewCompleted, setisInterviewCompleted] =
-    useState<Boolean>(false);
+  const [isInterviewCompleted, setIsInterviewCompleted] =
+    useState<boolean>(false);
   const [answer, setAnswer] = useState<string>("");
   const [followUpCounter, setFollowUpCounter] = useState<number>(0);
   const [initialResponse, setInitialResponse] = useState<string>("");
   const [allResponses, setAllResponses] = useState<IResponse[]>([]);
   const [followUpQuestion, setFollowUpQuestion] = useState<string>("");
-  const [generatingReport, setGeneratingReport] = useState<Boolean>(false);
+  const [generatingReport, setGeneratingReport] = useState<boolean>(false);
+  const [fetchingFollowUp, setFetchingFollowUp] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -84,26 +85,37 @@ const page = ({ params }: PageProps) => {
       }
     };
     fetchInitialQuestions();
-  }, []);
+  }, [sessionId]);
 
-  const fetchfollowUpQuestion = async (
+  const fetchFollowUpQuestion = async (
     originalQuestion: string,
     userAnswer: string,
     followUpCount: number,
+    previousFollowUpQuestion: string,
+    previousFollowUpAnswer: string,
   ) => {
     try {
-      const res = await axios.post(
-        `/api/session/${sessionId}/followup-question`,
-        { originalQuestion, userAnswer, followUpCount },
-      );
-      const question = res.data.followUpQuestion;
-      return question.followUpQuestion;
+      setFetchingFollowUp(true);
+      const res = await axios.post(`/api/session/${sessionId}/followup-question`, {
+        originalQuestion,
+        userAnswer,
+        followUpCount,
+        previousFollowUpQuestion,
+        previousFollowUpAnswer,
+      });
+
+      return res.data.followUpQuestion?.followUpQuestion as string;
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching follow-up question:", error);
+      return "";
+    } finally {
+      setFetchingFollowUp(false);
     }
   };
 
   const handleResponse = async (response: { text: string }) => {
+    if (!response.text.trim() || fetchingFollowUp) return;
+
     setMessages((prev) => [
       ...prev,
       {
@@ -119,7 +131,7 @@ const page = ({ params }: PageProps) => {
     const newResponse: IResponse = {
       question:
         followUpCounter === 0
-          ? initialQuestions[initialQuestionCounter - 1].questionText
+          ? initialQuestions[initialQuestionCounter - 1]?.questionText || ""
           : followUpQuestion,
       response: currentAnswer,
       questionType: followUpCounter === 0 ? "initial" : "followUp",
@@ -128,31 +140,31 @@ const page = ({ params }: PageProps) => {
     setAllResponses((prev) => [...prev, newResponse]);
 
     if (followUpCounter < 2) {
-      const baseAnswer =
-        followUpCounter === 0 ? currentAnswer : initialResponse;
+      const baseAnswer = followUpCounter === 0 ? currentAnswer : initialResponse;
 
-      const question = await fetchfollowUpQuestion(
-        initialQuestions[initialQuestionCounter - 1].questionText,
+      const question = await fetchFollowUpQuestion(
+        initialQuestions[initialQuestionCounter - 1]?.questionText || "",
         baseAnswer,
         followUpCounter,
+        followUpCounter === 0 ? "" : followUpQuestion,
+        followUpCounter === 0 ? "" : currentAnswer,
       );
 
       if (followUpCounter === 0) setInitialResponse(currentAnswer);
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          title: "Mock Mentor",
-          content: question,
-        },
-      ]);
-      setFollowUpQuestion(question);
-      setFollowUpCounter((prev) => prev + 1);
-    } else if (
-      initialQuestionCounter < initialQuestions.length &&
-      followUpCounter > 1
-    ) {
+      if (question) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            title: "Mock Mentor",
+            content: question,
+          },
+        ]);
+        setFollowUpQuestion(question);
+        setFollowUpCounter((prev) => prev + 1);
+      }
+    } else if (initialQuestionCounter < initialQuestions.length && followUpCounter > 1) {
       setMessages((prev) => [
         ...prev,
         {
@@ -172,18 +184,16 @@ const page = ({ params }: PageProps) => {
           content: "Interview is Over Now You can Exit",
         },
       ]);
-      setisInterviewCompleted(true);
+      setIsInterviewCompleted(true);
     }
   };
 
   const handleGenerateReport = async () => {
     setGeneratingReport(true);
     try {
-      const res = await axios.post(
-        `/api/session/${sessionId}/generate-report`,
-        { interviewData: allResponses },
-      );
-      console.log("Report generated:", res.data);
+      await axios.post(`/api/session/${sessionId}/generate-report`, {
+        interviewData: allResponses,
+      });
       router.push(`/session/${sessionId}/report`);
     } catch (error) {
       console.error("Error generating report:", error);
@@ -212,8 +222,7 @@ const page = ({ params }: PageProps) => {
                 Chat with your mock mentor
               </h1>
               <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                A focused, conversational interview space with the same visual
-                tone as the rest of the app.
+                A focused, conversational interview space with the same visual tone as the rest of the app.
               </p>
             </div>
 
@@ -243,9 +252,7 @@ const page = ({ params }: PageProps) => {
 
         {generatingReport ? (
           <div className="flex items-center justify-center">
-            <p className="text-lg font-medium text-muted-foreground">
-              Generating report...
-            </p>
+            <p className="text-lg font-medium text-muted-foreground">Generating report...</p>
           </div>
         ) : (
           <Card className="min-h-[calc(100vh-11rem)] border-border/70 bg-card/70 shadow-[0_24px_70px_-32px_rgba(0,0,0,0.45)] backdrop-blur-xl">
@@ -255,10 +262,7 @@ const page = ({ params }: PageProps) => {
                 Live conversation
               </div>
               <CardTitle className="text-lg">Mock Mentor</CardTitle>
-              <CardDescription>
-                Static chat layout only for now. No sending, no state, just the
-                visual shell.
-              </CardDescription>
+              <CardDescription>Interactive interview chat.</CardDescription>
             </CardHeader>
 
             <CardContent className="flex flex-1 flex-col">
@@ -269,9 +273,7 @@ const page = ({ params }: PageProps) => {
                   return (
                     <div
                       key={idx}
-                      className={`flex items-start gap-3 ${
-                        isAssistant ? "justify-start" : "justify-end"
-                      }`}
+                      className={`flex items-start gap-3 ${isAssistant ? "justify-start" : "justify-end"}`}
                     >
                       {isAssistant && (
                         <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-400 shadow-sm">
@@ -286,17 +288,15 @@ const page = ({ params }: PageProps) => {
                             : "border-blue-500/20 bg-blue-500/10 text-foreground"
                         }`}
                       >
-                        <div className="mb-1 flex items-center justify-between gap-3">
-                          <p className="text-sm font-semibold">
-                            {message.title}
-                          </p>
-                          {/* <span className="text-[11px] text-muted-foreground">
-                          {message.time}
-                        </span> */}
+                        <div className="mb-1 flex items-center gap-2">
+                          <p className="text-sm font-semibold">{message.title}</p>
+                          {/* {message.time && (
+                            <span className="text-[11px] text-muted-foreground">
+                              {message.time}
+                            </span>
+                          )} */}
                         </div>
-                        <p className="text-sm leading-6 text-muted-foreground">
-                          {message.content}
-                        </p>
+                        <p className="text-sm leading-6 text-muted-foreground">{message.content}</p>
                       </div>
 
                       {!isAssistant && (
@@ -307,6 +307,27 @@ const page = ({ params }: PageProps) => {
                     </div>
                   );
                 })}
+
+                {fetchingFollowUp && (
+                  <div className="flex items-start gap-3 justify-start">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-400 shadow-sm">
+                      <Bot className="size-4" />
+                    </div>
+
+                    <div className="max-w-[min(34rem,85%)] rounded-3xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm">
+                      <div className="mb-1 flex items-center gap-2">
+                        <p className="text-sm font-semibold">Mock Mentor</p>
+                        <span className="text-[11px] text-muted-foreground">Fetching follow-up...</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-blue-400/80 animate-bounce [animation-delay:0ms]" />
+                        <span className="size-2 rounded-full bg-blue-400/80 animate-bounce [animation-delay:120ms]" />
+                        <span className="size-2 rounded-full bg-blue-400/80 animate-bounce [animation-delay:240ms]" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="mt-4 rounded-3xl border border-border/70 bg-card/80 p-4 shadow-lg backdrop-blur-xl">
@@ -315,10 +336,7 @@ const page = ({ params }: PageProps) => {
                     <div className="flex items-center gap-2 text-green-500">
                       <SparklesIcon className="size-4" />
                       <p>Interview completed!</p>
-                      <Button
-                        onClick={handleGenerateReport}
-                        className="ml-auto"
-                      >
+                      <Button onClick={handleGenerateReport} className="ml-auto">
                         Generate Report
                       </Button>
                     </div>
@@ -331,15 +349,12 @@ const page = ({ params }: PageProps) => {
                         value={answer}
                       />
                       <Button
-                        onClick={() =>
-                          handleResponse({
-                            text: answer,
-                          })
-                        }
+                        disabled={fetchingFollowUp || !answer.trim()}
+                        onClick={() => handleResponse({ text: answer })}
                         className="gap-2 self-end sm:self-auto"
                       >
                         <Send className="size-4" />
-                        Send
+                        {fetchingFollowUp ? "Waiting..." : "Send"}
                       </Button>
                     </div>
                   )}
