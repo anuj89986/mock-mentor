@@ -21,6 +21,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import useSpeechRecognition from "@/hooks/useSpeechRecognition";
+import useTextToSpeech from "@/hooks/useTextToSpeech";
 
 interface PageProps {
   params: Promise<{
@@ -58,7 +60,8 @@ const page = ({ params }: PageProps) => {
   const [generatingReport, setGeneratingReport] = useState<boolean>(false);
   const [fetchingFollowUp, setFetchingFollowUp] = useState<boolean>(false);
   const router = useRouter();
-
+  const { transcript, isListening, startListening, stopListening } = useSpeechRecognition();
+  const { speak, stop, voices, isSpeaking } = useTextToSpeech();
   useEffect(() => {
     const fetchInitialQuestions = async () => {
       try {
