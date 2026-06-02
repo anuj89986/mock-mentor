@@ -12,6 +12,7 @@ declare global {
 export default function useSpeechRecognition() {
   const [transcript, setTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState("");
 
   const recognitionRef = useRef<any>(null);
 
@@ -30,18 +31,29 @@ export default function useSpeechRecognition() {
     recognition.interimResults = true;
     recognition.lang = "en-US";
 
+
     recognition.onresult = (event: any) => {
       let finalTranscript = "";
+      let interim = "";
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        finalTranscript += event.results[i][0].transcript;
+        const result = event.results[i];
+
+        if (result.isFinal) {
+          finalTranscript += result[0].transcript + " ";
+        } else {
+          interim += result[0].transcript;
+        }
       }
 
-      setTranscript(finalTranscript);
+      if (finalTranscript) {
+        setTranscript((prev) => prev + finalTranscript);
+      }
+
+      setInterimTranscript(interim);
     };
 
     recognition.onstart = () => {
-        setTranscript("");
       setIsListening(true);
     };
 
@@ -53,10 +65,12 @@ export default function useSpeechRecognition() {
   }, []);
 
   const startListening = () => {
+    setTranscript("");
     recognitionRef.current?.start();
   };
 
   const stopListening = () => {
+    setTranscript("");
     recognitionRef.current?.stop();
   };
 
@@ -66,5 +80,6 @@ export default function useSpeechRecognition() {
     startListening,
     stopListening,
     setTranscript,
+    interimTranscript,
   };
 }

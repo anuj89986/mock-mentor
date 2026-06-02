@@ -1,14 +1,15 @@
 "use client";
+
 import axios from "axios";
 import Link from "next/link";
 import {
   ArrowLeft,
   Bot,
-  MessageSquare,
+  Mic,
+  RefreshCw,
   Sparkles,
-  Send,
   SparklesIcon,
-  User,
+  Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,8 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { useState, use, useEffect } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSpeechRecognition from "@/hooks/useSpeechRecognition";
 import useTextToSpeech from "@/hooks/useTextToSpeech";
@@ -29,15 +29,18 @@ interface PageProps {
     sessionId: string;
   }>;
 }
+
 interface IQuestion {
   questionNumber: number;
   questionText: string;
 }
+
 interface IMessage {
   role: "assistant" | "user";
   title: string;
   content: string | undefined;
 }
+
 interface IResponse {
   question: string;
   response: string;
@@ -52,7 +55,6 @@ const page = ({ params }: PageProps) => {
     useState<number>(1);
   const [isInterviewCompleted, setIsInterviewCompleted] =
     useState<boolean>(false);
-  const [answer, setAnswer] = useState<string>("");
   const [followUpCounter, setFollowUpCounter] = useState<number>(0);
   const [initialResponse, setInitialResponse] = useState<string>("");
   const [allResponses, setAllResponses] = useState<IResponse[]>([]);
@@ -60,8 +62,22 @@ const page = ({ params }: PageProps) => {
   const [generatingReport, setGeneratingReport] = useState<boolean>(false);
   const [fetchingFollowUp, setFetchingFollowUp] = useState<boolean>(false);
   const router = useRouter();
-  const { transcript, isListening, startListening, stopListening } = useSpeechRecognition();
-  const { speak, stop, voices, isSpeaking } = useTextToSpeech();
+  const {
+    transcript,
+    isListening,
+    startListening,
+    stopListening,
+    interimTranscript,
+  } = useSpeechRecognition();
+  const { speak, stop, isSpeaking } = useTextToSpeech();
+  const lastSpokenPromptRef = useRef("");
+
+  const latestAssistantMessage = useMemo(
+    () => [...messages].reverse().find((message) => message.role === "assistant"),
+    [messages],
+  );
+  const latestAssistantText = latestAssistantMessage?.content || "";
+
   useEffect(() => {
     const fetchInitialQuestions = async () => {
       try {
@@ -89,6 +105,23 @@ const page = ({ params }: PageProps) => {
     };
     fetchInitialQuestions();
   }, [sessionId]);
+
+  useEffect(() => {
+    if (!latestAssistantText || latestAssistantText === lastSpokenPromptRef.current) {
+      return;
+    }
+
+    lastSpokenPromptRef.current = latestAssistantText;
+    stop();
+    speak(latestAssistantText);
+  }, [latestAssistantText, speak, stop]);
+
+  const handleRelisten = () => {
+    if (!latestAssistantText) return;
+
+    stop();
+    speak(latestAssistantText);
+  };
 
   const fetchFollowUpQuestion = async (
     originalQuestion: string,
@@ -119,6 +152,8 @@ const page = ({ params }: PageProps) => {
   const handleResponse = async (response: { text: string }) => {
     if (!response.text.trim() || fetchingFollowUp) return;
 
+    stop();
+
     setMessages((prev) => [
       ...prev,
       {
@@ -128,7 +163,6 @@ const page = ({ params }: PageProps) => {
       },
     ]);
 
-    setAnswer("");
     const currentAnswer = response.text;
 
     const newResponse: IResponse = {
@@ -191,6 +225,15 @@ const page = ({ params }: PageProps) => {
     }
   };
 
+  const handleStopListening = () => {
+    stopListening();
+
+    const finalResponse = `${transcript} ${interimTranscript}`.trim();
+    if (finalResponse) {
+      handleResponse({ text: finalResponse });
+    }
+  };
+
   const handleGenerateReport = async () => {
     setGeneratingReport(true);
     try {
@@ -212,32 +255,21 @@ const page = ({ params }: PageProps) => {
         <div className="absolute -bottom-28 -left-20 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
       </div>
 
-      <main className="mx-auto min-h-screen max-w-6xl px-4 py-8">
+      <main className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-8">
         <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-3xl space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground shadow-sm backdrop-blur">
               <Sparkles className="size-3.5 text-blue-400" />
-              Interview chat session
+              Voice interview session
             </div>
 
             <div className="space-y-3">
               <h1 className="font-heading text-4xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
-                Chat with your mock mentor
+                Speak with your mock mentor
               </h1>
               <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                A focused, conversational interview space with the same visual tone as the rest of the app.
+                Listen to each question, answer by voice, and continue the same interview flow.
               </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2 pt-1">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur">
-                <MessageSquare className="size-3.5 text-blue-400" />
-                Session {sessionId}
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur">
-                <SparklesIcon className="size-3.5 text-cyan-400" />
-                Chat-first design
-              </div>
             </div>
           </div>
 
@@ -254,115 +286,81 @@ const page = ({ params }: PageProps) => {
         </header>
 
         {generatingReport ? (
-          <div className="flex items-center justify-center">
+          <div className="flex flex-1 items-center justify-center">
             <p className="text-lg font-medium text-muted-foreground">Generating report...</p>
           </div>
         ) : (
-          <Card className="min-h-[calc(100vh-11rem)] border-border/70 bg-card/70 shadow-[0_24px_70px_-32px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+          <Card className="flex min-h-[calc(100vh-13rem)] flex-1 flex-col border-border/70 bg-card/70 shadow-[0_24px_70px_-32px_rgba(0,0,0,0.45)] backdrop-blur-xl">
             <CardHeader className="border-b border-border/60 pb-5">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Bot className="size-4 text-blue-400" />
-                Live conversation
+                Live voice conversation
               </div>
               <CardTitle className="text-lg">Mock Mentor</CardTitle>
-              <CardDescription>Interactive interview chat.</CardDescription>
+              <CardDescription>
+                The mentor speaks automatically. Use relisten whenever you need the prompt again.
+              </CardDescription>
             </CardHeader>
 
-            <CardContent className="flex flex-1 flex-col">
-              <div className="flex-1 space-y-4 overflow-y-auto">
-                {messages.map((message, idx) => {
-                  const isAssistant = message.role === "assistant";
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`flex items-start gap-3 ${isAssistant ? "justify-start" : "justify-end"}`}
-                    >
-                      {isAssistant && (
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-400 shadow-sm">
-                          <Bot className="size-4" />
-                        </div>
-                      )}
-
-                      <div
-                        className={`max-w-[min(34rem,85%)] rounded-3xl border px-4 py-3 shadow-sm ${
-                          isAssistant
-                            ? "border-border/70 bg-card/80 text-foreground"
-                            : "border-blue-500/20 bg-blue-500/10 text-foreground"
-                        }`}
-                      >
-                        <div className="mb-1 flex items-center gap-2">
-                          <p className="text-sm font-semibold">{message.title}</p>
-                          {/* {message.time && (
-                            <span className="text-[11px] text-muted-foreground">
-                              {message.time}
-                            </span>
-                          )} */}
-                        </div>
-                        <p className="text-sm leading-6 text-muted-foreground">{message.content}</p>
-                      </div>
-
-                      {!isAssistant && (
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-card/80 text-cyan-400 shadow-sm">
-                          <User className="size-4" />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {fetchingFollowUp && (
-                  <div className="flex items-start gap-3 justify-start">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-400 shadow-sm">
-                      <Bot className="size-4" />
-                    </div>
-
-                    <div className="max-w-[min(34rem,85%)] rounded-3xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm">
-                      <div className="mb-1 flex items-center gap-2">
-                        <p className="text-sm font-semibold">Mock Mentor</p>
-                        <span className="text-[11px] text-muted-foreground">Fetching follow-up...</span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <span className="size-2 rounded-full bg-blue-400/80 animate-bounce [animation-delay:0ms]" />
-                        <span className="size-2 rounded-full bg-blue-400/80 animate-bounce [animation-delay:120ms]" />
-                        <span className="size-2 rounded-full bg-blue-400/80 animate-bounce [animation-delay:240ms]" />
-                      </div>
-                    </div>
-                  </div>
+            <CardContent className="flex flex-1 flex-col items-center justify-center gap-8 p-6 text-center">
+              <div className="flex size-28 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-400 shadow-[0_0_0_10px_rgba(59,130,246,0.06)]">
+                {isSpeaking ? (
+                  <Volume2 className="size-12 animate-pulse" />
+                ) : (
+                  <Bot className="size-12" />
                 )}
               </div>
 
-              <div className="mt-4 rounded-3xl border border-border/70 bg-card/80 p-4 shadow-lg backdrop-blur-xl">
-                <div className="space-y-3">
-                  {isInterviewCompleted ? (
-                    <div className="flex items-center gap-2 text-green-500">
-                      <SparklesIcon className="size-4" />
-                      <p>Interview completed!</p>
-                      <Button onClick={handleGenerateReport} className="ml-auto">
-                        Generate Report
-                      </Button>
-                    </div>
-                  ) : (
-                    <div>
-                      <Textarea
-                        onChange={(e) => setAnswer(e.target.value)}
-                        placeholder="Type your answer here..."
-                        className="min-h-28 rounded-2xl border-border/70 bg-background/60 px-4 py-3 text-sm shadow-inner shadow-black/5 placeholder:text-muted-foreground/70"
-                        value={answer}
-                      />
-                      <Button
-                        disabled={fetchingFollowUp || !answer.trim()}
-                        onClick={() => handleResponse({ text: answer })}
-                        className="gap-2 self-end sm:self-auto"
-                      >
-                        <Send className="size-4" />
-                        {fetchingFollowUp ? "Waiting..." : "Send"}
-                      </Button>
-                    </div>
-                  )}
-                </div>
+              <div className="max-w-xl space-y-3">
+                <p className="text-sm font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                  {fetchingFollowUp ? "Preparing follow-up" : isSpeaking ? "Mentor speaking" : "Ready"}
+                </p>
+                <h2 className="font-heading text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
+                  Voice-only interview
+                </h2>
+                <p className="text-sm leading-6 text-muted-foreground sm:text-base">
+                  {fetchingFollowUp
+                    ? "Please wait while the next question is generated."
+                    : isListening
+                      ? `${transcript} ${interimTranscript}`.trim() || "Listening..."
+                      : "Start listening when you are ready to answer."}
+                </p>
               </div>
+
+              {isInterviewCompleted ? (
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <div className="inline-flex items-center gap-2 text-green-500">
+                    <SparklesIcon className="size-4" />
+                    <p>Interview completed!</p>
+                  </div>
+                  <Button onClick={handleGenerateReport}>
+                    Generate Report
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Button
+                    onClick={handleRelisten}
+                    disabled={!latestAssistantText || isSpeaking}
+                    type="button"
+                    variant="outline"
+                    className="h-12 rounded-full border-border/70 bg-card/80 px-5 shadow-sm"
+                  >
+                    <RefreshCw className="size-4" />
+                    Relisten
+                  </Button>
+
+                  <Button
+                    onClick={isListening ? handleStopListening : startListening}
+                    disabled={fetchingFollowUp || isSpeaking}
+                    type="button"
+                    className="h-12 rounded-full px-5"
+                  >
+                    <Mic className="size-4" />
+                    {isListening ? "Submit Answer" : "Start Answer"}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -370,4 +368,5 @@ const page = ({ params }: PageProps) => {
     </div>
   );
 };
+
 export default page;
