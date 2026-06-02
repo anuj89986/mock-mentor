@@ -61,19 +61,18 @@ const page = ({ params }: PageProps) => {
   const [followUpQuestion, setFollowUpQuestion] = useState<string>("");
   const [generatingReport, setGeneratingReport] = useState<boolean>(false);
   const [fetchingFollowUp, setFetchingFollowUp] = useState<boolean>(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null,
+  );
+  const audioChunks = useRef<Blob[]>([]);
   const router = useRouter();
-  const {
-    transcript,
-    isListening,
-    startListening,
-    stopListening,
-    interimTranscript,
-  } = useSpeechRecognition();
+  const [isListening, setIsListening] = useState<boolean>(false);
   const { speak, stop, isSpeaking } = useTextToSpeech();
   const lastSpokenPromptRef = useRef("");
 
   const latestAssistantMessage = useMemo(
-    () => [...messages].reverse().find((message) => message.role === "assistant"),
+    () =>
+      [...messages].reverse().find((message) => message.role === "assistant"),
     [messages],
   );
   const latestAssistantText = latestAssistantMessage?.content || "";
@@ -107,7 +106,10 @@ const page = ({ params }: PageProps) => {
   }, [sessionId]);
 
   useEffect(() => {
-    if (!latestAssistantText || latestAssistantText === lastSpokenPromptRef.current) {
+    if (
+      !latestAssistantText ||
+      latestAssistantText === lastSpokenPromptRef.current
+    ) {
       return;
     }
 
@@ -132,13 +134,16 @@ const page = ({ params }: PageProps) => {
   ) => {
     try {
       setFetchingFollowUp(true);
-      const res = await axios.post(`/api/session/${sessionId}/followup-question`, {
-        originalQuestion,
-        userAnswer,
-        followUpCount,
-        previousFollowUpQuestion,
-        previousFollowUpAnswer,
-      });
+      const res = await axios.post(
+        `/api/session/${sessionId}/followup-question`,
+        {
+          originalQuestion,
+          userAnswer,
+          followUpCount,
+          previousFollowUpQuestion,
+          previousFollowUpAnswer,
+        },
+      );
 
       return res.data.followUpQuestion?.followUpQuestion as string;
     } catch (error) {
@@ -177,7 +182,8 @@ const page = ({ params }: PageProps) => {
     setAllResponses((prev) => [...prev, newResponse]);
 
     if (followUpCounter < 2) {
-      const baseAnswer = followUpCounter === 0 ? currentAnswer : initialResponse;
+      const baseAnswer =
+        followUpCounter === 0 ? currentAnswer : initialResponse;
 
       const question = await fetchFollowUpQuestion(
         initialQuestions[initialQuestionCounter - 1]?.questionText || "",
@@ -201,7 +207,10 @@ const page = ({ params }: PageProps) => {
         setFollowUpQuestion(question);
         setFollowUpCounter((prev) => prev + 1);
       }
-    } else if (initialQuestionCounter < initialQuestions.length && followUpCounter > 1) {
+    } else if (
+      initialQuestionCounter < initialQuestions.length &&
+      followUpCounter > 1
+    ) {
       setMessages((prev) => [
         ...prev,
         {
@@ -225,14 +234,50 @@ const page = ({ params }: PageProps) => {
     }
   };
 
+  const startListening = async () => {
+    if(isListening) return;
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+
+    recorder.ondataavailable = (event) => {
+      audioChunks.current.push(event.data);
+    };
+
+    recorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
+      audioChunks.current = [];
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "response.webm");
+
+      try {
+        const res = await axios.post("/api/transcribe", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        const data = await res.data;
+        if(data.text) {
+          await handleResponse({ text: data.text });
+        }
+      } catch (error) {
+        console.error("Error transcribing audio:", error);
+      }
+    };
+    recorder.start();
+    setMediaRecorder(recorder);
+    setIsListening(true);
+  };
+
+  const stopListening = () => {
+    mediaRecorder?.stop();
+    setMediaRecorder(null);
+    setIsListening(false);
+  };
+
   const handleStopListening = () => {
     stopListening();
-
-    const finalResponse = `${transcript} ${interimTranscript}`.trim();
-    if (finalResponse) {
-      handleResponse({ text: finalResponse });
-    }
   };
+
 
   const handleGenerateReport = async () => {
     setGeneratingReport(true);
@@ -268,7 +313,8 @@ const page = ({ params }: PageProps) => {
                 Speak with your mock mentor
               </h1>
               <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                Listen to each question, answer by voice, and continue the same interview flow.
+                Listen to each question, answer by voice, and continue the same
+                interview flow.
               </p>
             </div>
           </div>
@@ -287,53 +333,143 @@ const page = ({ params }: PageProps) => {
 
         {generatingReport ? (
           <div className="flex flex-1 items-center justify-center">
-            <p className="text-lg font-medium text-muted-foreground">Generating report...</p>
+            <p className="text-lg font-medium text-muted-foreground">
+              Generating report...
+            </p>
           </div>
         ) : (
-          <Card className="flex min-h-[calc(100vh-13rem)] flex-1 flex-col border-border/70 bg-card/70 shadow-[0_24px_70px_-32px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-            <CardHeader className="border-b border-border/60 pb-5">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Bot className="size-4 text-blue-400" />
-                Live voice conversation
+          <Card className="flex min-h-[calc(100vh-13rem)] flex-1 overflow-hidden border-border/70 bg-card/75 shadow-[0_28px_90px_-36px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+            <CardHeader className="border-b border-border/60 bg-background/25 pb-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="flex size-8 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10">
+                      <Bot className="size-4 text-blue-400" />
+                    </span>
+                    Live voice conversation
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl">Mock Mentor</CardTitle>
+                    <CardDescription className="mt-1">
+                      The mentor speaks automatically. Use relisten whenever you
+                      need the prompt again.
+                    </CardDescription>
+                  </div>
+                </div>
+
+                <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm">
+                  <span
+                    className={`size-2 rounded-full ${
+                      isListening
+                        ? "bg-green-400 shadow-[0_0_18px_rgba(74,222,128,0.75)]"
+                        : isSpeaking
+                          ? "bg-blue-400 shadow-[0_0_18px_rgba(96,165,250,0.75)]"
+                          : "bg-muted-foreground/50"
+                    }`}
+                  />
+                  {fetchingFollowUp
+                    ? "Preparing"
+                    : isListening
+                      ? "Listening"
+                      : isSpeaking
+                        ? "Speaking"
+                        : "Ready"}
+                </div>
               </div>
-              <CardTitle className="text-lg">Mock Mentor</CardTitle>
-              <CardDescription>
-                The mentor speaks automatically. Use relisten whenever you need the prompt again.
-              </CardDescription>
             </CardHeader>
 
-            <CardContent className="flex flex-1 flex-col items-center justify-center gap-8 p-6 text-center">
-              <div className="flex size-28 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-400 shadow-[0_0_0_10px_rgba(59,130,246,0.06)]">
-                {isSpeaking ? (
-                  <Volume2 className="size-12 animate-pulse" />
-                ) : (
-                  <Bot className="size-12" />
-                )}
-              </div>
+            <CardContent className="flex flex-1 flex-col items-center justify-center gap-8 p-5 text-center sm:p-8">
+              <div className="relative flex w-full max-w-3xl flex-col items-center rounded-[2rem] border border-border/70 bg-background/35 px-5 py-8 shadow-inner sm:px-8">
+                <div className="pointer-events-none absolute inset-x-8 top-8 h-px bg-linear-to-r from-transparent via-blue-400/30 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-8 bottom-8 h-px bg-linear-to-r from-transparent via-cyan-400/25 to-transparent" />
 
-              <div className="max-w-xl space-y-3">
-                <p className="text-sm font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  {fetchingFollowUp ? "Preparing follow-up" : isSpeaking ? "Mentor speaking" : "Ready"}
-                </p>
-                <h2 className="font-heading text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
-                  Voice-only interview
-                </h2>
-                <p className="text-sm leading-6 text-muted-foreground sm:text-base">
-                  {fetchingFollowUp
-                    ? "Please wait while the next question is generated."
-                    : isListening
-                      ? `${transcript} ${interimTranscript}`.trim() || "Listening..."
-                      : "Start listening when you are ready to answer."}
-                </p>
+                <div className="relative mb-8 flex size-32 items-center justify-center rounded-full border border-blue-500/25 bg-blue-500/10 text-blue-400 shadow-[0_0_0_12px_rgba(59,130,246,0.06),0_20px_70px_-28px_rgba(59,130,246,0.9)]">
+                  <div
+                    className={`absolute inset-0 rounded-full border border-blue-400/30 ${
+                      isSpeaking || isListening ? "animate-ping" : ""
+                    }`}
+                  />
+                  <div className="absolute inset-3 rounded-full border border-cyan-400/20" />
+                  {isSpeaking ? (
+                    <Volume2 className="relative size-12 animate-pulse" />
+                  ) : (
+                    <Bot className="relative size-12" />
+                  )}
+                </div>
+
+                <div className="mb-8 flex h-24 w-full max-w-2xl items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-card/65 px-4 shadow-sm">
+                  <span
+                    className={`w-1.5 rounded-full bg-blue-400/45 ${isSpeaking || isListening ? "h-8 animate-pulse" : "h-4"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-cyan-400/50 ${isSpeaking || isListening ? "h-14 animate-pulse" : "h-8"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-blue-400/60 ${isSpeaking || isListening ? "h-10 animate-pulse" : "h-5"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-cyan-400/70 ${isSpeaking || isListening ? "h-20 animate-pulse" : "h-10"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-blue-400/70 ${isSpeaking || isListening ? "h-12 animate-pulse" : "h-6"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-cyan-400/80 ${isSpeaking || isListening ? "h-16 animate-pulse" : "h-9"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-blue-400/80 ${isSpeaking || isListening ? "h-9 animate-pulse" : "h-5"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-cyan-400/70 ${isSpeaking || isListening ? "h-20 animate-pulse" : "h-11"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-blue-400/70 ${isSpeaking || isListening ? "h-12 animate-pulse" : "h-7"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-cyan-400/60 ${isSpeaking || isListening ? "h-16 animate-pulse" : "h-8"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-blue-400/55 ${isSpeaking || isListening ? "h-10 animate-pulse" : "h-5"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-cyan-400/45 ${isSpeaking || isListening ? "h-14 animate-pulse" : "h-7"}`}
+                  />
+                  <span
+                    className={`w-1.5 rounded-full bg-blue-400/40 ${isSpeaking || isListening ? "h-8 animate-pulse" : "h-4"}`}
+                  />
+                </div>
+
+                <div className="max-w-xl space-y-3">
+                  <p className="text-sm font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                    {fetchingFollowUp
+                      ? "Preparing follow-up"
+                      : isSpeaking
+                        ? "Mentor speaking"
+                        : "Ready"}
+                  </p>
+                  <h2 className="font-heading text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
+                    Voice-only interview
+                  </h2>
+                  <p className="min-h-12 text-sm leading-6 text-muted-foreground sm:text-base">
+                    {fetchingFollowUp
+                      ? "Please wait while the next question is generated."
+                      : isListening
+                        ? "Listening..."
+                        : "Start listening when you are ready to answer."}
+                  </p>
+                </div>
               </div>
 
               {isInterviewCompleted ? (
                 <div className="flex flex-wrap items-center justify-center gap-3">
-                  <div className="inline-flex items-center gap-2 text-green-500">
+                  <div className="inline-flex h-12 items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-5 text-green-500">
                     <SparklesIcon className="size-4" />
                     <p>Interview completed!</p>
                   </div>
-                  <Button onClick={handleGenerateReport}>
+                  <Button
+                    onClick={handleGenerateReport}
+                    className="h-12 rounded-full px-5"
+                  >
                     Generate Report
                   </Button>
                 </div>
