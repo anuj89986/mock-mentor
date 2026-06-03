@@ -21,8 +21,6 @@ import {
 } from "@/components/ui/card";
 import { use, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import useSpeechRecognition from "@/hooks/useSpeechRecognition";
-import useTextToSpeech from "@/hooks/useTextToSpeech";
 
 interface PageProps {
   params: Promise<{
@@ -67,15 +65,9 @@ const page = ({ params }: PageProps) => {
   const audioChunks = useRef<Blob[]>([]);
   const router = useRouter();
   const [isListening, setIsListening] = useState<boolean>(false);
-  const { speak, stop, isSpeaking } = useTextToSpeech();
-  const lastSpokenPromptRef = useRef("");
-
-  const latestAssistantMessage = useMemo(
-    () =>
-      [...messages].reverse().find((message) => message.role === "assistant"),
-    [messages],
-  );
-  const latestAssistantText = latestAssistantMessage?.content || "";
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [latestAssistantText, setLatestAssistantText] = useState<string>("");
+  const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchInitialQuestions = async () => {
@@ -97,6 +89,7 @@ const page = ({ params }: PageProps) => {
                   },
                 ],
           );
+          setLatestAssistantText(questions[0].questionText);
         }
       } catch (error) {
         console.error("Error fetching initial questions:", error);
@@ -105,23 +98,39 @@ const page = ({ params }: PageProps) => {
     fetchInitialQuestions();
   }, [sessionId]);
 
+  const speak = async (text: string) => {
+    setIsSpeaking(true);
+    try {
+      const res = await axios.post(
+        "/api/tts",
+        { text },
+        {
+          responseType: "blob",
+        },
+      );
+      const audioBlob = res.data;
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.play();
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+    } catch (error) {
+      console.error("Error in text-to-speech:", error);
+      setIsSpeaking(false);
+    }
+  };
   useEffect(() => {
-    if (
-      !latestAssistantText ||
-      latestAssistantText === lastSpokenPromptRef.current
-    ) {
+    if (!latestAssistantText) {
       return;
     }
-
-    lastSpokenPromptRef.current = latestAssistantText;
-    stop();
     speak(latestAssistantText);
-  }, [latestAssistantText, speak, stop]);
+  }, [latestAssistantText]);
 
   const handleRelisten = () => {
     if (!latestAssistantText) return;
 
-    stop();
     speak(latestAssistantText);
   };
 
@@ -144,7 +153,6 @@ const page = ({ params }: PageProps) => {
           previousFollowUpAnswer,
         },
       );
-
       return res.data.followUpQuestion?.followUpQuestion as string;
     } catch (error) {
       console.error("Error fetching follow-up question:", error);
@@ -156,8 +164,6 @@ const page = ({ params }: PageProps) => {
 
   const handleResponse = async (response: { text: string }) => {
     if (!response.text.trim() || fetchingFollowUp) return;
-
-    stop();
 
     setMessages((prev) => [
       ...prev,
@@ -205,6 +211,7 @@ const page = ({ params }: PageProps) => {
           },
         ]);
         setFollowUpQuestion(question);
+        setLatestAssistantText(question);
         setFollowUpCounter((prev) => prev + 1);
       }
     } else if (
@@ -221,6 +228,9 @@ const page = ({ params }: PageProps) => {
       ]);
       setInitialQuestionCounter((prev) => prev + 1);
       setFollowUpCounter(0);
+      setLatestAssistantText(
+        initialQuestions[initialQuestionCounter].questionText,
+      );
     } else {
       setMessages((prev) => [
         ...prev,
@@ -235,7 +245,7 @@ const page = ({ params }: PageProps) => {
   };
 
   const startListening = async () => {
-    if(isListening) return;
+    if (isListening) return;
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const recorder = new MediaRecorder(stream);
 
@@ -248,7 +258,7 @@ const page = ({ params }: PageProps) => {
       audioChunks.current = [];
       const formData = new FormData();
       formData.append("audio", audioBlob, "response.webm");
-
+      setIsTranscribing(true);
       try {
         const res = await axios.post("/api/transcribe", formData, {
           headers: {
@@ -256,11 +266,13 @@ const page = ({ params }: PageProps) => {
           },
         });
         const data = await res.data;
-        if(data.text) {
+        if (data.text) {
           await handleResponse({ text: data.text });
         }
       } catch (error) {
         console.error("Error transcribing audio:", error);
+      } finally {
+        setIsTranscribing(false);
       }
     };
     recorder.start();
@@ -277,7 +289,6 @@ const page = ({ params }: PageProps) => {
   const handleStopListening = () => {
     stopListening();
   };
-
 
   const handleGenerateReport = async () => {
     setGeneratingReport(true);
@@ -364,7 +375,9 @@ const page = ({ params }: PageProps) => {
                         ? "bg-green-400 shadow-[0_0_18px_rgba(74,222,128,0.75)]"
                         : isSpeaking
                           ? "bg-blue-400 shadow-[0_0_18px_rgba(96,165,250,0.75)]"
-                          : "bg-muted-foreground/50"
+                          : isTranscribing
+                            ? "bg-yellow-400 shadow-[0_0_18px_rgba(253,224,71,0.75)]"
+                            : "bg-gray-400"
                     }`}
                   />
                   {fetchingFollowUp
@@ -373,7 +386,9 @@ const page = ({ params }: PageProps) => {
                       ? "Listening"
                       : isSpeaking
                         ? "Speaking"
-                        : "Ready"}
+                        : isTranscribing
+                          ? "Transcribing"
+                          : "Ready"}
                 </div>
               </div>
             </CardHeader>
@@ -445,7 +460,11 @@ const page = ({ params }: PageProps) => {
                       ? "Preparing follow-up"
                       : isSpeaking
                         ? "Mentor speaking"
-                        : "Ready"}
+                        : isTranscribing
+                          ? "Transcribing your answer"
+                          : isListening
+                            ? "You are answering"
+                            : "Waiting for your answer"}
                   </p>
                   <h2 className="font-heading text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
                     Voice-only interview
@@ -488,7 +507,7 @@ const page = ({ params }: PageProps) => {
 
                   <Button
                     onClick={isListening ? handleStopListening : startListening}
-                    disabled={fetchingFollowUp || isSpeaking}
+                    disabled={fetchingFollowUp || isSpeaking || isTranscribing}
                     type="button"
                     className="h-12 rounded-full px-5"
                   >
