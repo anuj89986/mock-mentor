@@ -19,8 +19,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { use, useEffect, useMemo, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import useTextToSpeech from "@/hooks/useTextToSpeech";
 
 interface PageProps {
   params: Promise<{
@@ -65,9 +66,10 @@ const page = ({ params }: PageProps) => {
   const audioChunks = useRef<Blob[]>([]);
   const router = useRouter();
   const [isListening, setIsListening] = useState<boolean>(false);
-  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  // const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [latestAssistantText, setLatestAssistantText] = useState<string>("");
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
+  const { speak, stop, isSpeaking } = useTextToSpeech();
 
   useEffect(() => {
     const fetchInitialQuestions = async () => {
@@ -98,29 +100,29 @@ const page = ({ params }: PageProps) => {
     fetchInitialQuestions();
   }, [sessionId]);
 
-  const speak = async (text: string) => {
-    setIsSpeaking(true);
-    try {
-      const res = await axios.post(
-        "/api/tts",
-        { text },
-        {
-          responseType: "blob",
-        },
-      );
-      const audioBlob = res.data;
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audio.play();
-      audio.onended = () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-    } catch (error) {
-      console.error("Error in text-to-speech:", error);
-      setIsSpeaking(false);
-    }
-  };
+  // const speak = async (text: string) => {
+  //   setIsSpeaking(true);
+  //   try {
+  //     const res = await axios.post(
+  //       "/api/tts",
+  //       { text },
+  //       {
+  //         responseType: "blob",
+  //       },
+  //     );
+  //     const audioBlob = res.data;
+  //     const audioUrl = URL.createObjectURL(audioBlob);
+  //     const audio = new Audio(audioUrl);
+  //     audio.play();
+  //     audio.onended = () => {
+  //       setIsSpeaking(false);
+  //       URL.revokeObjectURL(audioUrl);
+  //     };
+  //   } catch (error) {
+  //     console.error("Error in text-to-speech:", error);
+  //     setIsSpeaking(false);
+  //   }
+  // };
   useEffect(() => {
     if (!latestAssistantText) {
       return;

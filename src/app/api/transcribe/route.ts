@@ -25,14 +25,14 @@ export async function POST(req: Request) {
       audio: buffer,
     });
 
-    return Response.json({
+    return NextResponse.json({
       text: transcript.text,
     });
 
   } catch (error) {
     console.log(error);
 
-    return Response.json(
+    return NextResponse.json(
       { error: "Transcription failed" },
       { status: 500 }
     );

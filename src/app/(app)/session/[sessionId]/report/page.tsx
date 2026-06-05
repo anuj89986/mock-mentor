@@ -20,9 +20,7 @@ ShieldCheck,
 Sparkles,
 Target,
 TrendingUp,
-UserCheck,
-Users,
-Zap,
+Users
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
