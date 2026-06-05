@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-     DbConnect();
+     await DbConnect();
      const sessions = await SessionModel.find({ userId: session.user.id }).select("id status");
      return NextResponse.json({ sessions }, { status: 200 });
 }
