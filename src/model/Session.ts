@@ -1,6 +1,5 @@
 import mongoose,{Schema,Document} from "mongoose";
 
-
 export interface IQuestion {
     questionNumber : number;
     questionText : string;
@@ -9,6 +8,7 @@ export interface IQuestion {
 export interface ISession extends Document{
     userId : mongoose.Types.ObjectId;
     resumeId : mongoose.Types.ObjectId;
+    report?: mongoose.Types.ObjectId;
     interviewStyle : string;
     initialQuestions : IQuestion[];
     status : string;
@@ -23,6 +23,11 @@ const SessionSchema = new Schema<ISession>({
     resumeId:{
         type:mongoose.Types.ObjectId,
         ref:"Resume"
+    },
+    report:{
+        type:mongoose.Types.ObjectId,
+        ref:"Report",
+        default:undefined
     },
     initialQuestions:{
         type:[{
