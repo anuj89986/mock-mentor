@@ -8,7 +8,6 @@ import axios from 'axios'
 import {
   ArrowRight,
   CalendarDays,
-  Clock3,
   Filter,
   PlayCircle,
   Plus,
@@ -18,6 +17,7 @@ import {
   TrendingUp,
   Users,
   BookOpen,
+  Clock3,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,14 @@ import { Button } from '@/components/ui/button'
 interface Session {
   _id: string,
   status: string
+  createdAt: string,
+  report?: {
+    overallScore?: number,
+    technicalScore?: number,
+    communicationScore?: number,
+    confidenceScore?: number,
+    resumeConsistencyScore?: number
+  }
 }
 
 export default function Page() {
@@ -58,7 +66,7 @@ export default function Page() {
   const totalSessions = sessions.length
   const activeSessions = sessions.filter(s => s.status === 'active').length
   const completedSessions = sessions.filter(s => s.status === 'completed').length
-  // const averageScore = sessions.reduce((acc, s) => acc + (s.score || 0), 0) / totalSessions
+  const averageScore = sessions.reduce((acc, s) => acc + (s.report?.overallScore || 0), 0) / totalSessions
 
   return (
     <div className="relative flex-1 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))] text-white">
@@ -125,31 +133,7 @@ export default function Page() {
               <TrendingUp className="size-4 text-amber-400" />
             </div>
             <div className="text-3xl font-semibold text-foreground">
-              {/* {Number.isFinite(averageScore) ? `${Math.round(averageScore)}%` : 'N/A'} */}
-            </div>
-          </div>
-        </section>
-
-        <section className="mb-8 rounded-3xl border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur sm:p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search sessions"
-                className="h-12 w-full rounded-2xl border border-border/70 bg-background/60 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground/70 outline-none transition focus:border-blue-500/50"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" className="gap-2 border-border/70 bg-card/70">
-                <Filter className="size-4" />
-                Filter
-              </Button>
-              <Button variant="outline" className="gap-2 border-border/70 bg-card/70">
-                <CalendarDays className="size-4" />
-                Sort by Date
-              </Button>
+              {Number.isFinite(averageScore) ? `${Math.round(averageScore)}%` : 'N/A'}
             </div>
           </div>
         </section>
@@ -174,7 +158,7 @@ export default function Page() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {sessions.map((item,idx) => (
+              {sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((item,idx) => (
                 <article
                   key={item._id}
                   className="group rounded-3xl border border-border/70 bg-card/70 p-5 shadow-sm transition hover:border-blue-500/40 hover:bg-card/80 hover:shadow-lg hover:shadow-blue-500/5 backdrop-blur"
@@ -182,9 +166,6 @@ export default function Page() {
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="mb-3 flex flex-wrap items-center gap-2">
-                        {/* <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400">
-                          {item.style}
-                        </span> */}
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-medium ${
                             item.status === 'Completed'
@@ -192,27 +173,23 @@ export default function Page() {
                               : 'bg-amber-500/10 text-amber-400'
                           }`}
                         >
-                          {item.status}
+                          {item.status.toUpperCase()}
                         </span>
                       </div>
 
                       <h3 className="truncate text-xl font-semibold text-foreground">
-                        Session {idx + 1}
+                        Session {item._id.slice(-6).toUpperCase()}
                       </h3>
 
                       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-                        {/* <span className="inline-flex items-center gap-2">
+                        <span className="inline-flex items-center gap-2">
                           <CalendarDays className="size-4 text-blue-400" />
-                          {item.date}
-                        </span> */}
-                        {/* <span className="inline-flex items-center gap-2">
+                          {new Date(item.createdAt).toLocaleDateString('en-In', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                        <span className="inline-flex items-center gap-2">
                           <Clock3 className="size-4 text-cyan-400" />
-                          {item.time}
-                        </span> */}
-                        {/* <span className="inline-flex items-center gap-2">
-                          <Users className="size-4 text-emerald-400" />
-                          {item.questions} questions
-                        </span> */}
+                          {new Date(item.createdAt).toLocaleTimeString('en-In', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
                     </div>
 
@@ -221,16 +198,23 @@ export default function Page() {
                         <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                           Score
                         </div>
-                        {/* <div className="text-2xl font-semibold text-foreground">
-                          {item.score === null ? '—' : `${item.score}%`}
-                        </div> */}
+                        <div className="text-2xl font-semibold text-foreground">
+                          {item.report === undefined ? '—' : `${item.report?.overallScore}%`}
+                        </div>
                       </div>
 
                       <Button asChild className="gap-2 bg-blue-600 hover:bg-blue-700">
-                        <Link href={`/session/${item._id}/report`}>
+                        {item.status === 'completed' ? (
+                          <Link href={`/session/${item._id}/report`}>
                           View Report
                           <ArrowRight className="size-4" />
                         </Link>
+                        ) : (
+                          <Link href={`/session/${item._id}`}>
+                          Continue
+                          <ArrowRight className="size-4" />
+                        </Link>
+                        )}
                       </Button>
                     </div>
                   </div>

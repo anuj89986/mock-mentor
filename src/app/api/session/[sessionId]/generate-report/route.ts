@@ -15,6 +15,9 @@ export async function POST(request : Request ,  { params }: { params: Promise<{ 
     if (!session) {
         return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
+    session.status = "completed";
+    await session.save();
+
     const resumeText = (session?.resumeId as any)?.extractedText;
     if(!resumeText) {
         return NextResponse.json({ error: "Resume text not found" }, { status: 404 });
@@ -29,6 +32,9 @@ export async function POST(request : Request ,  { params }: { params: Promise<{ 
         userId: session.userId,
         ...cleanedReport
     });
+
+    session.report = reportDoc._id;
+    await session.save();
 
     return NextResponse.json({ report : reportDoc }, { status: 200 });
 }

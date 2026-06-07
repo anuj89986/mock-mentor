@@ -294,12 +294,6 @@ export default function ReportPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" asChild className="border-border/70 bg-card/70 shadow-sm backdrop-blur">
-              <Link href={`/session/${sessionId}`}>
-                <ArrowLeft className="size-4" />
-                Back to Session
-              </Link>
-            </Button>
             <Button asChild className="bg-blue-600 hover:bg-blue-700">
               <Link href="/dashboard">
                 Dashboard

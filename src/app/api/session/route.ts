@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import DbConnect from "@/lib/dbConnect";
 import SessionModel from "@/model/Session";
 import "@/model/Report";
-import mongoose from "mongoose";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);

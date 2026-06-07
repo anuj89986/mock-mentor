@@ -89,7 +89,6 @@ export default function ResumePage() {
       const res = await axios.post("/api/resume/upload", formData);
       if (res.status === 200) {
         setUploadedFile(null);
-        console.log(res.data.uploadedResume);
         setResumeList((prev) => [...prev, res.data.uploadedResume]);
         setError("");
         toast.success("Resume uploaded successfully.");

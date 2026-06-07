@@ -52,7 +52,7 @@ interface SessionWithReport {
 }
 
 type ScoreHistory = {
-  date: string;
+  number: string;
   overall: number;
   technical: number;
   communication: number;
@@ -146,14 +146,14 @@ export default function ProgressPage() {
   };
   const stats = calculateStats();
 
-  const scoreHistory = useMemo(() => {
+  const scoreHistory: ScoreHistory[] = useMemo(() => {
     return sessions
       .sort(
         (a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       )
       .map((session, index) => ({
-        date: `Session ${index + 1}`,
+        number: `Session ${index + 1}`,
         overall: session.report?.overallScore || 0,
         technical: session.report?.technicalScore || 0,
         communication: session.report?.communicationScore || 0,
@@ -261,21 +261,25 @@ export default function ProgressPage() {
               <StatCard
                 label="Average Overall"
                 value={stats.avgOverall}
+                isPercent={true}
                 icon={Target}
               />
               <StatCard
                 label="Technical"
                 value={stats.avgTechnical}
+                isPercent={true}
                 icon={Brain}
               />
               <StatCard
                 label="Communication"
                 value={stats.avgCommunication}
+                isPercent={true}
                 icon={MessageSquareText}
               />
               <StatCard
                 label="Confidence"
                 value={stats.avgConfidence}
+                isPercent={true}
                 icon={Users}
               />
               <StatCard
@@ -303,7 +307,7 @@ export default function ProgressPage() {
                         stroke="rgba(255,255,255,0.1)"
                       />
                       <XAxis
-                        dataKey="date"
+                        dataKey="number"
                         stroke="rgba(255,255,255,0.5)"
                         style={{ fontSize: "12px" }}
                       />
