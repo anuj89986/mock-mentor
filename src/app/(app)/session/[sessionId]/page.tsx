@@ -22,6 +22,17 @@ import {
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import useTextToSpeech from "@/hooks/useTextToSpeech";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {CodeEditor} from "@/components/ui/CodeEditor";
 
 interface PageProps {
   params: Promise<{
@@ -516,6 +527,35 @@ const page = ({ params }: PageProps) => {
                     <Mic className="size-4" />
                     {isListening ? "Submit Answer" : "Start Answer"}
                   </Button>
+                  <Dialog >
+                    <DialogTrigger asChild>
+                      <Button>Open Editor</Button>
+                    </DialogTrigger>
+
+                    <DialogContent className="w-full h-[80vh] flex flex-col">
+                      <DialogHeader>
+                        <DialogTitle>Coding Challenge</DialogTitle>
+                        <DialogDescription>
+                          Use the editor below to solve the coding problem. You
+                          can submit your answer at any time.
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      {/* Editor Area */}
+                      <div className="flex-1 overflow-hidden rounded-md border p-4">
+                        {/* Replace this with Monaco Editor */}
+                        <CodeEditor />
+                      </div>
+
+                      <DialogFooter className="mt-4">
+                        <DialogClose asChild>
+                          <Button variant="outline">Close</Button>
+                        </DialogClose>
+
+                        <Button>Submit</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               )}
             </CardContent>

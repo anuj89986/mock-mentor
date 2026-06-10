@@ -101,7 +101,7 @@ export default function DashboardPage() {
 
 
   return (
-    <div className="flex h-screen bg-black text-white overflow-hidden">
+    <div className="flex h-screen w-full bg-black text-white overflow-hidden">
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         {/* Top Bar */}

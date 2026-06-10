@@ -15,7 +15,7 @@ const Navbar = () => {
   return (
     session ?
     <div>
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white/5 border-r border-white/10 transition-all duration-300 flex flex-col h-screen`}>
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white/5 border-r border-white/10 transition-all duration-300 flex flex-col h-screen sticky top-0`}>
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
           {sidebarOpen && (
             <div className="flex items-center gap-2">

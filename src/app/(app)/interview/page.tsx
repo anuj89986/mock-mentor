@@ -23,6 +23,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast} from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Resume {
   _id: string;
@@ -82,6 +83,7 @@ export default function InterviewPage() {
   const [uploadedResumes, setUploadedResumes] = useState<Resume[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [selectedInterviewStyle, setSelectedInterviewStyle] = useState<string | null>(null);
+  const [isCreatingSession, setIsCreatingSession] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -108,6 +110,7 @@ export default function InterviewPage() {
       return;
     }
     try {
+      setIsCreatingSession(true);
       const res = await axios.post("/api/session/create-session", {
         resumeId: selectedResumeId,
         interviewStyle: selectedInterviewStyle,
@@ -120,6 +123,8 @@ export default function InterviewPage() {
       }
     } catch (error) {
       console.error("Error creating session:", error);
+    } finally {
+      setIsCreatingSession(false);
     }
   };
 
@@ -285,11 +290,18 @@ export default function InterviewPage() {
                       You've selected your resume and interview style.
                     </p>
                   </div>
-                  <Button type="button" size="lg" className="shrink-0" onClick={onHandleStartSession}>
-                    <Wand2 className="size-4" />
-                    Start Session
-                    <ArrowRight className="size-4" />
-                  </Button>
+                  {isCreatingSession ? (
+                    <Button disabled className="bg-blue-600 hover:bg-blue-700 cursor-not-allowed">
+                      <Spinner className="text-white" />
+                      Generating...
+                    </Button>
+                  ) : (
+                    <Button type="button" size="lg" className="shrink-0" onClick={onHandleStartSession}>
+                      <Wand2 className="size-4" />
+                      Start Session
+                      <ArrowRight className="size-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -12,6 +12,7 @@
     "@elevenlabs/elevenlabs-js": "^2.51.0",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",
+    "@monaco-editor/react": "^4.7.0",
     "assemblyai": "^4.33.3",
     "axios": "^1.14.0",
     "bcryptjs": "^3.0.3",

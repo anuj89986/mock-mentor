@@ -67,22 +67,6 @@ type Report = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function scoreTone(score?: number): string {
-  if (typeof score !== 'number') return 'text-slate-400'
-  if (score >= 85) return 'text-emerald-400'
-  if (score >= 70) return 'text-violet-400'
-  if (score >= 50) return 'text-amber-400'
-  return 'text-red-400'
-}
-
-function scoreBg(score?: number): string {
-  if (typeof score !== 'number') return 'bg-white/5'
-  if (score >= 85) return 'bg-emerald-500/10 border-emerald-500/20'
-  if (score >= 70) return 'bg-violet-500/10 border-violet-500/20'
-  if (score >= 50) return 'bg-amber-500/10 border-amber-500/20'
-  return 'bg-red-500/10 border-red-500/20'
-}
-
 function scoreHex(score?: number): string {
   if (typeof score !== 'number') return '#64748b'
   if (score >= 85) return '#34d399'
@@ -141,12 +125,12 @@ function ScoreGauge({ score }: { score?: number }) {
   const circumference = 2 * Math.PI * R
   const sweep = circumference * 0.75 // 270° arc
   const filled = sweep * (pct / 100)
-  const gap = sweep - filled
+  // const gap = sweep - filled
 
   // The arc starts at 135° (bottom-left) sweeps clockwise 270°
   const cx = 64
   const cy = 64
-  const startAngle = 135 * (Math.PI / 180)
+  // const startAngle = 135 * (Math.PI / 180)
 
   return (
     <div className="relative flex items-center justify-center">
@@ -358,6 +342,7 @@ export default function ReportPage() {
   // ── Report view ──
 
   return (
+    <Shell>
       <main className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
 
         {/* ── Header ── */}
@@ -662,6 +647,7 @@ export default function ReportPage() {
           )}
         </section>
       </main>
+      </Shell>
   )
 }
 
@@ -669,10 +655,10 @@ export default function ReportPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#080C1A] text-white">
+    <div className="relative w-full min-h-screen overflow-hidden bg-[#080C1A] text-white">
       {/* Ambient glows */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-full bg-violet-700/12 blur-[120px]" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-130 w-130 rounded-full bg-violet-700/12 blur-[120px]" />
         <div className="absolute top-1/2 -right-40 h-96 w-96 rounded-full bg-indigo-600/8 blur-[100px]" />
         <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-violet-800/10 blur-[90px]" />
       </div>
