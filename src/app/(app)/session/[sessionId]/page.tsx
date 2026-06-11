@@ -139,6 +139,10 @@ const page = ({ params }: PageProps) => {
       return;
     }
     speak(latestAssistantText);
+
+    return () => {
+      stop();
+    }
   }, [latestAssistantText]);
 
   const handleRelisten = () => {

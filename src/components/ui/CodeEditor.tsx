@@ -1,26 +1,81 @@
-'use client';
+"use client";
 
-import { Editor } from '@monaco-editor/react';
-import { Play, RotateCcw, Download } from 'lucide-react';
+import { Editor } from "@monaco-editor/react";
+import { Play, RotateCcw, Download } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-import { Button } from '@/components/ui/button';
+type Language = "java" | "javascript" | "python" | "cpp";
 
 export function CodeEditor() {
+  const languages = [
+    { value: "java", label: "Java" },
+    { value: "javascript", label: "JavaScript" },
+    { value: "python", label: "Python" },
+    { value: "cpp", label: "C++" },
+  ];
+  const [value, setValue] = useState<Language>("java");
+  const defaultCode = {
+    java: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}`,
+
+    javascript: `function main() {
+    console.log("Hello, World!");
+}
+
+main();`,
+
+    python: `def main():
+    print("Hello, World!")
+
+if __name__ == "__main__":
+    main()`,
+
+    cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello, World!" << endl;
+    return 0;
+}`,
+  };
+  const [code, setCode] = useState(defaultCode);
+  const handleLanguageChange = (lang: string) => {
+    setValue(lang as Language);
+  };
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
+    <div className="relative rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/10 bg-slate-900 px-4 py-3">
         <div className="flex items-center gap-3">
-          <h3 className="font-medium text-white">
-            Coding Pad
-          </h3>
+          <h3 className="font-medium text-white">Coding Pad</h3>
 
-          <select className="rounded-md border border-white/10 bg-slate-800 px-3 py-1 text-sm text-gray-200 outline-none">
-            <option>Java</option>
-            <option>JavaScript</option>
-            <option>Python</option>
-            <option>C++</option>
-          </select>
+          <Select value={value} onValueChange={(value) => handleLanguageChange(value)}>
+            <SelectTrigger className="w-full max-w-48" >
+              <SelectValue/>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {languages.map((lang) => (
+                  <SelectItem key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex items-center gap-2">
@@ -45,18 +100,17 @@ export function CodeEditor() {
       <div className="h-125">
         <Editor
           height="100%"
-          language="java"
+          language={value}
           theme="vs-dark"
-          defaultValue={`public class Solution {
-    public static void main(String[] args) {
-        
-    }
-}`}
+          value={code[value]}
+          onChange={(newValue) => {
+            setCode((prev) => ({ ...prev, [value]: newValue }));
+          }}
           options={{
             minimap: { enabled: false },
             fontSize: 15,
-            lineNumbers: 'on',
-            wordWrap: 'on',
+            lineNumbers: "on",
+            wordWrap: "on",
             automaticLayout: true,
             scrollBeyondLastLine: false,
             padding: {
