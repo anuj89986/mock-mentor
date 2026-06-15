@@ -3,6 +3,7 @@ import mongoose,{Schema,Document} from "mongoose";
 export interface IQuestion {
     questionNumber : number;
     questionText : string;
+    questionType : string;
 }
 
 export interface ISession extends Document{
@@ -32,7 +33,8 @@ const SessionSchema = new Schema<ISession>({
     initialQuestions:{
         type:[{
             questionNumber : Number,
-            questionText : String
+            questionText : String,
+            questionType : String
         }],
         default:[]
     },

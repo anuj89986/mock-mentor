@@ -4,90 +4,99 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export const model = genAI.getGenerativeModel({
   model: "gemini-3-flash-preview",
+  generationConfig: {
+    temperature: 0.85
+  }
+});
+
+export const backupModel = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash", 
+  generationConfig: {
+    temperature: 0.85,
+    responseMimeType: "application/json",
+  }
 });
 
 export async function generateQuestions(resumeText: string, interviewStyle: string) {
-  const prompt = `
-You are a strict interviewer conducting a LIVE interview.
+  const prompt = `You are a strict, experienced industry interviewer conducting a LIVE interview.
 
-Your questions must sound like spoken conversation, NOT written paragraphs.
+Your questions must sound like spontaneous, spoken conversation, NOT written paragraphs or textbook definitions.
 
 Interview style: ${interviewStyle}
 
 Style meanings:
-
-* technical → coding, projects, debugging, scalability, architecture
-* behavioural → teamwork, communication, ownership, challenges
+* technical → coding, debugging, scalability, architecture, specific tech stack decisions
+* behavioural → teamwork, communication, ownership, navigating failures or tight deadlines
 * mixed → combination of both
 
 Instructions:
+* Generate EXACTLY 2 questions.
+* Keep each question SHORT. Maximum 2 sentences and 35 words per question.
+* Questions must sound natural when spoken aloud. Use conversational fillers or brief acknowledgments.
+* Avoid long explanations, AI-style wording, or robotic phrasing.
+* Ask only ONE main thing at a time. No multi-part questions.
+* Match the candidate's experience level based strictly on the resume.
 
-* Generate EXACTLY 2 questions
-* Keep each question SHORT
-* Maximum 2 sentences per question
-* Maximum 35 words per question
-* Questions must sound natural when spoken aloud
-* Avoid long explanations
-* Avoid AI-style wording
-* Avoid textbook phrasing
-* Questions should feel like a real interviewer talking live
+QUESTION TYPE DEFINITIONS:
+* Set "questionType" to "coding" ONLY IF the question requires the candidate to write actual code or solve an algorithm.
+* Set "questionType" to "verbal" IF the question is conceptual, architectural, behavioural, or just requires a spoken explanation.
 
-VERY IMPORTANT:
+VARIETY & RANDOMIZATION (CRITICAL):
+* Even if the resume and style inputs are identical to previous runs, you MUST ask completely different questions. 
+* To do this, randomly select a DIFFERENT, highly specific focal point (a minor project detail, a specific library mentioned, a distinct bullet point) rather than asking general overview questions.
 
-* Start question 1 with a short greeting
-* Start question 2 with a natural transition/reaction
-* The interviewer should react briefly before moving ahead
+FLOW & TONE:
+* Start question 1 with a short, professional greeting and immediately dive into a specific resume detail.
+* Start question 2 with a natural, slightly skeptical, or probing transition based on how an interviewer might react.
 
 Examples of GOOD style:
-
-* "Hi Anuj, thanks for joining. Can you walk me through your bank project?"
-* "Alright, that makes sense. How did you handle authentication there?"
-* "Okay, let's move to the next one. Why did you choose MongoDB?"
-* "Interesting. What would break first if traffic suddenly increased?"
+* "Hi Anuj, thanks for joining. I was looking at the medical portal project on your resume—why did you specifically choose Node.js for the backend?"
+* "Alright, fair enough. But what would happen to that system if traffic suddenly spiked by 10x?"
+* "Okay, let's pivot. Tell me about a time you strongly disagreed with a team member on a technical approach."
+* "Interesting. Walk me through the exact steps you took to debug that routing issue."
 
 Examples of BAD style:
-
-* "Can you explain the architecture, scalability, optimization, authentication strategy, and deployment workflow..."
-* Long multi-part questions
-* Robotic formal wording
-
-Questions must:
-
-* Match the candidate's experience level
-* Be based on the resume/projects
-* Feel slightly strict but realistic
-* Ask only ONE main thing at a time
+* "Can you explain the architecture, scalability, optimization, authentication strategy, and deployment workflow..." (Too long, multi-part)
+* "What are the four pillars of object-oriented programming?" (Too textbook)
 
 Return ONLY valid JSON.
 
 Format:
 [
-{
-"questionNumber": 1,
-"questionText": "..."
-},
-{
-"questionNumber": 2,
-"questionText": "..."
-}
+  {
+    "questionNumber": 1,
+    "questionText": "...",
+    "questionType": "coding" | "verbal"
+  },
+  {
+    "questionNumber": 2,
+    "questionText": "...",
+    "questionType": "coding" | "verbal"
+  }
 ]
 
-Rules:
-
-* No markdown
-* No explanation
-* No extra text
-* Strictly valid JSON
-
-Resume:
-${resumeText}
+Resume:${resumeText}
 
 `;
 
-  const result = await model.generateContent(prompt);
+  try{
+    const result = await model.generateContent(prompt);
   const text = result.response.text();
 
   return text;
+  }
+  catch(error){
+    console.warn("Primary model failed, trying backup...", error);
+    try{
+      const backupResult = await backupModel.generateContent(prompt);
+      const backupText = backupResult.response.text();
+      return backupText;
+    }
+    catch(backupError){
+      console.error("Backup model also failed.", backupError);
+      return "[]";
+    }
+  }
 }
 
 export async function generateFollowUp(
@@ -97,80 +106,52 @@ export async function generateFollowUp(
   previousFollowUpQuestion: string,
   previousFollowUpAnswer: string
 ) {
-  const prompt = `
-You are a strict but realistic interviewer conducting a live interview.
+  const prompt = `You are a strict, experienced industry interviewer conducting a LIVE interview.
 
 Original question:
 "${originalQuestion}"
 
-Candidate answer:
+Candidate's latest answer:
 "${userAnswer}"
 
-Previous follow-up question:
-"${previousFollowUpQuestion || ""}"
+Previous context (if any):
+- Prior follow-up asked: "${previousFollowUpQuestion || "None"}"
+- Candidate's prior answer: "${previousFollowUpAnswer || "None"}"
 
-Previous follow-up answer:
-"${previousFollowUpAnswer || ""}"
-
-Current follow-up number:
-${followUpCount + 1} of 2
+Current follow-up number: ${followUpCount + 1} of 2
 
 Your task:
+* Ask EXACTLY ONE short, natural follow-up question based on the candidate's LATEST answer.
+* The question must sound like a spontaneous, spoken reaction in a real interview.
+* Keep it concise: maximum 2 sentences, under 30 words.
+* NEVER repeat a previous question. Dig deeper or pivot if they are stuck.
+* Avoid robotic phrasing, corporate jargon, or textbook definitions.
 
-* Ask EXACTLY ONE short and natural follow-up question
-* Make it feel like a real interviewer speaking live
-* Dig deeper based on the candidate's latest response
-* Keep the question concise
-* Avoid robotic or overly formal wording
+QUESTION TYPE DEFINITIONS:
+* Set "followUpType" to "coding" ONLY IF you are explicitly asking them to write code, solve an algorithm, or type out an implementation based on their answer.
+* Set "followUpType" to "verbal" IF you are asking for reasoning, architecture, clarification, or testing their conceptual knowledge.
 
-Conversation behavior:
-
-* If the answer is strong:
-  briefly acknowledge and go deeper
-
-Examples:
-
-* "Good. Why did you choose that?"
-
-* "Alright. How would that scale?"
-
-* "Makes sense. What if traffic doubles?"
-
-* If the answer is weak/confused:
-  challenge or clarify naturally
-
-Examples:
-
-* "Can you explain that a bit better?"
-
-* "Why exactly would that happen?"
-
-* "I'm not fully convinced. Can you justify it?"
-
-* If the candidate says they don't know:
-  respond professionally and move on
-
-Examples:
-
-* "That's okay. Then how would you approach it?"
-* "No worries. What would you try first?"
-* "Alright, let's think through it together."
+CONVERSATIONAL BEHAVIOR:
+* If the answer is strong: Briefly acknowledge and test the limits. 
+  Example: "Makes sense. But how would that logic hold up if the database went down?"
+* If the answer is weak/confused: Challenge them naturally. 
+  Example: "I'm not fully following your routing logic there. Can you clarify how the data actually moves?"
+* If the candidate doesn't know: Respond professionally and pivot to a related concept. 
+  Example: "No worries. Let's step back—how would you approach it if you didn't have to use that specific library?"
 
 Return ONLY valid JSON.
 
 Format:
 {
-"followUpQuestion": "..."
+  "followUpQuestion": "...",
+  "followUpType": "coding" | "verbal"
 }
 
 Rules:
-
-* Question must sound human
-* Keep it short
-* No explanation
 * No markdown
+* No explanation
+* No extra text
 * Strictly valid JSON
-
 `;
 
   const result = await model.generateContent(prompt);
@@ -194,6 +175,6 @@ export function parseFollowUp(raw: string) {
     return JSON.parse(cleaned);
   } catch (error) {
     console.error("Follow-up Parse Error:", error);
-    return { followUpQuestion: "" };
+    return { followUpQuestion: "", followUpType: "verbal" };
   }
 }

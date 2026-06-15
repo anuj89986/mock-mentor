@@ -32,7 +32,7 @@ import {
   DialogClose,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {CodeEditor} from "@/components/ui/CodeEditor";
+import { CodeEditor } from "@/components/ui/CodeEditor";
 
 interface PageProps {
   params: Promise<{
@@ -43,6 +43,7 @@ interface PageProps {
 interface IQuestion {
   questionNumber: number;
   questionText: string;
+  questionType: string;
 }
 
 interface IMessage {
@@ -56,6 +57,7 @@ interface IResponse {
   response: string;
   questionType: "initial" | "followUp";
 }
+type Language = "java" | "javascript" | "python" | "cpp" | "none";
 
 const page = ({ params }: PageProps) => {
   const { sessionId } = use(params);
@@ -81,6 +83,41 @@ const page = ({ params }: PageProps) => {
   const [latestAssistantText, setLatestAssistantText] = useState<string>("");
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
   const { speak, stop, isSpeaking } = useTextToSpeech();
+  const [iscodeEditorReq, setIsCodeEditorReq] = useState<boolean>(false);
+
+  const defaultCode = {
+    java: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}`,
+
+    javascript: `function main() {
+    console.log("Hello, World!");
+}
+
+main();`,
+
+    python: `def main():
+    print("Hello, World!")
+
+if __name__ == "__main__":
+    main()`,
+
+    cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello, World!" << endl;
+    return 0;
+}`,
+    none: `// Pseudo Code
+`,
+  };
+  const [code, setCode] = useState<Record<Language, string>>(defaultCode);
+  const [codeLanguage, setCodeLanguage] = useState<Language>("java");
+  const [iscodeEditorOpen, setIsCodeEditorOpen] = useState<boolean>(false);
+  // console.log("Current code state:", code);
 
   useEffect(() => {
     const fetchInitialQuestions = async () => {
@@ -90,6 +127,9 @@ const page = ({ params }: PageProps) => {
         );
         const questions: IQuestion[] = res.data.initialQuestions;
         setInitialQuestions(questions);
+        if (questions[0].questionType === "coding") {
+          setIsCodeEditorReq(true);
+        }
         if (questions.length > 0) {
           setMessages((prev) =>
             prev.length
@@ -142,7 +182,7 @@ const page = ({ params }: PageProps) => {
 
     return () => {
       stop();
-    }
+    };
   }, [latestAssistantText]);
 
   const handleRelisten = () => {
@@ -170,6 +210,11 @@ const page = ({ params }: PageProps) => {
           previousFollowUpAnswer,
         },
       );
+      if (res.data.followUpQuestion?.followUpType === "coding") {
+        setIsCodeEditorReq(true);
+      } else {
+        setIsCodeEditorReq(false);
+      }
       return res.data.followUpQuestion?.followUpQuestion as string;
     } catch (error) {
       console.error("Error fetching follow-up question:", error);
@@ -235,6 +280,11 @@ const page = ({ params }: PageProps) => {
       initialQuestionCounter < initialQuestions.length &&
       followUpCounter > 1
     ) {
+      if (initialQuestions[initialQuestionCounter].questionType === "coding") {
+        setIsCodeEditorReq(true);
+      } else {
+        setIsCodeEditorReq(false);
+      }
       setMessages((prev) => [
         ...prev,
         {
@@ -319,6 +369,13 @@ const page = ({ params }: PageProps) => {
     } finally {
       setGeneratingReport(false);
     }
+  };
+  const handleCodeSubmit = async () => {
+    if(fetchingFollowUp) return;
+    handleResponse({ text: code[codeLanguage] });
+    setIsCodeEditorReq(false);
+    setCode(defaultCode);
+    setIsCodeEditorOpen(false);
   };
 
   return (
@@ -522,19 +579,27 @@ const page = ({ params }: PageProps) => {
                     Relisten
                   </Button>
 
-                  <Button
-                    onClick={isListening ? handleStopListening : startListening}
-                    disabled={fetchingFollowUp || isSpeaking || isTranscribing}
-                    type="button"
-                    className="h-12 rounded-full px-5"
-                  >
-                    <Mic className="size-4" />
-                    {isListening ? "Submit Answer" : "Start Answer"}
-                  </Button>
-                  <Dialog >
-                    <DialogTrigger asChild>
-                      <Button>Open Editor</Button>
-                    </DialogTrigger>
+                  {!iscodeEditorReq && (
+                    <Button
+                      onClick={
+                        isListening ? handleStopListening : startListening
+                      }
+                      disabled={
+                        fetchingFollowUp || isSpeaking || isTranscribing
+                      }
+                      type="button"
+                      className="h-12 rounded-full px-5"
+                    >
+                      <Mic className="size-4" />
+                      {isListening ? "Submit Answer" : "Start Answer"}
+                    </Button>
+                  )}
+                  <Dialog open={iscodeEditorOpen} onOpenChange={setIsCodeEditorOpen}>
+                    {iscodeEditorReq && (
+                      <DialogTrigger asChild>
+                        <Button>Open Editor</Button>
+                      </DialogTrigger>
+                    )}
 
                     <DialogContent className="w-full h-[80vh] flex flex-col">
                       <DialogHeader>
@@ -548,7 +613,7 @@ const page = ({ params }: PageProps) => {
                       {/* Editor Area */}
                       <div className="flex-1 overflow-hidden rounded-md border p-4">
                         {/* Replace this with Monaco Editor */}
-                        <CodeEditor />
+                        <CodeEditor code={code} onChange={setCode} setLanguage={setCodeLanguage} />
                       </div>
 
                       <DialogFooter className="mt-4">
@@ -556,7 +621,7 @@ const page = ({ params }: PageProps) => {
                           <Button variant="outline">Close</Button>
                         </DialogClose>
 
-                        <Button>Submit</Button>
+                        <Button onClick={handleCodeSubmit}>Submit</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
