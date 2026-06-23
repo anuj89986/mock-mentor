@@ -38,7 +38,6 @@ const Navbar = () => {
             { icon: BookOpen, label: 'Sessions', href: '/session' },
             { icon: TrendingUp, label: 'Progress', href: '/progress' },
             { icon: Download, label: 'Resume',href: '/resume' },
-            { icon: Settings, label: 'Settings',href: '/settings' },
           ].map((item) => (
             <Link
               key={item.label}

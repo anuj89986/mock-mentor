@@ -167,3 +167,40 @@ export function parseReport(raw: any) {
     };
   }
 }
+
+export async function scoreAnswers(question: string, answer: string): Promise<number> {
+  const prompt = `
+Question asked: "${question}"
+Candidate's answer: "${answer}"
+
+Evaluate the answer above.
+
+Return ONLY valid JSON, no markdown:
+{
+  "score": number between 1-10,
+  "strengths": ["", ""],
+  "weaknesses": ["", ""],
+  "nextFocus": ""
+}
+`;
+
+  try {
+    const completion = await openrouter.chat.completions.create({
+      model: "google/gemma-4-26b-a4b-it:free",
+      messages: [
+        { role: "system", content: "You are a strict interview evaluator. Return ONLY valid JSON." },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0,
+      max_tokens: 300, // fixed
+    });
+
+    const raw = completion.choices?.[0]?.message?.content ?? "";
+  const cleaned = raw.replace(/```json|```/g, "").trim();
+  const parsed = JSON.parse(cleaned);
+  return parsed;
+  } catch (error) {
+    console.error("scoreAnswers error:", error);
+    return 5; // neutral fallback so follow-up still generates
+  }
+}

@@ -3,21 +3,17 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export const model = genAI.getGenerativeModel({
-  model: "gemini-3-flash-preview",
-  generationConfig: {
-    temperature: 0.85
-  }
-});
-
-export const backupModel = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash", 
+  model: "gemini-2.5-flash",
   generationConfig: {
     temperature: 0.85,
     responseMimeType: "application/json",
-  }
+  },
 });
 
-export async function generateQuestions(resumeText: string, interviewStyle: string) {
+export async function generateQuestions(
+  resumeText: string,
+  interviewStyle: string,
+) {
   const prompt = `You are a strict, experienced industry interviewer conducting a LIVE interview.
 
 Your questions must sound like spontaneous, spoken conversation, NOT written paragraphs or textbook definitions.
@@ -79,24 +75,10 @@ Resume:${resumeText}
 
 `;
 
-  try{
-    const result = await model.generateContent(prompt);
+  const result = await model.generateContent(prompt);
   const text = result.response.text();
 
   return text;
-  }
-  catch(error){
-    console.warn("Primary model failed, trying backup...", error);
-    try{
-      const backupResult = await backupModel.generateContent(prompt);
-      const backupText = backupResult.response.text();
-      return backupText;
-    }
-    catch(backupError){
-      console.error("Backup model also failed.", backupError);
-      return "[]";
-    }
-  }
 }
 
 export async function generateFollowUp(
@@ -104,7 +86,8 @@ export async function generateFollowUp(
   userAnswer: string,
   followUpCount: number, // 0 or 1
   previousFollowUpQuestion: string,
-  previousFollowUpAnswer: string
+  previousFollowUpAnswer: string,
+  score: number
 ) {
   const prompt = `You are a strict, experienced industry interviewer conducting a LIVE interview.
 
@@ -156,6 +139,7 @@ Rules:
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
+
   return text;
 }
 

@@ -56,6 +56,7 @@ interface IResponse {
   question: string;
   response: string;
   questionType: "initial" | "followUp";
+  score: number | null;
 }
 type Language = "java" | "javascript" | "python" | "cpp" | "none";
 
@@ -84,6 +85,12 @@ const page = ({ params }: PageProps) => {
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
   const { speak, stop, isSpeaking } = useTextToSpeech();
   const [iscodeEditorReq, setIsCodeEditorReq] = useState<boolean>(false);
+  const [sessionScore, setSessionScore] = useState<{
+    score: number;
+    strengths: string[];
+    weaknesses: string[];
+    nextFocus: string;
+  } | null>(null);
 
   const defaultCode = {
     java: `public class Main {
@@ -215,10 +222,13 @@ int main() {
       } else {
         setIsCodeEditorReq(false);
       }
-      return res.data.followUpQuestion?.followUpQuestion as string;
+      return {
+        question: res.data.followUpQuestion?.followUpQuestion as string,
+        score: res.data.followUpQuestion?.score ?? null,
+      };
     } catch (error) {
       console.error("Error fetching follow-up question:", error);
-      return "";
+      return { question: "", score: null };
     } finally {
       setFetchingFollowUp(false);
     }
@@ -245,6 +255,7 @@ int main() {
           : followUpQuestion,
       response: currentAnswer,
       questionType: followUpCounter === 0 ? "initial" : "followUp",
+      score: null,
     };
 
     setAllResponses((prev) => [...prev, newResponse]);
@@ -253,13 +264,24 @@ int main() {
       const baseAnswer =
         followUpCounter === 0 ? currentAnswer : initialResponse;
 
-      const question = await fetchFollowUpQuestion(
+      const { question, score } = await fetchFollowUpQuestion(
         initialQuestions[initialQuestionCounter - 1]?.questionText || "",
         baseAnswer,
         followUpCounter,
         followUpCounter === 0 ? "" : followUpQuestion,
         followUpCounter === 0 ? "" : currentAnswer,
       );
+      if (score) {
+        setSessionScore(score);
+        setAllResponses((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            score,
+          };
+          return updated;
+        });
+      }
 
       if (followUpCounter === 0) setInitialResponse(currentAnswer);
 
@@ -371,7 +393,7 @@ int main() {
     }
   };
   const handleCodeSubmit = async () => {
-    if(fetchingFollowUp) return;
+    if (fetchingFollowUp) return;
     handleResponse({ text: code[codeLanguage] });
     setIsCodeEditorReq(false);
     setCode(defaultCode);
@@ -594,7 +616,10 @@ int main() {
                       {isListening ? "Submit Answer" : "Start Answer"}
                     </Button>
                   )}
-                  <Dialog open={iscodeEditorOpen} onOpenChange={setIsCodeEditorOpen}>
+                  <Dialog
+                    open={iscodeEditorOpen}
+                    onOpenChange={setIsCodeEditorOpen}
+                  >
                     {iscodeEditorReq && (
                       <DialogTrigger asChild>
                         <Button>Open Editor</Button>
@@ -613,7 +638,11 @@ int main() {
                       {/* Editor Area */}
                       <div className="flex-1 overflow-hidden rounded-md border p-4">
                         {/* Replace this with Monaco Editor */}
-                        <CodeEditor code={code} onChange={setCode} setLanguage={setCodeLanguage} />
+                        <CodeEditor
+                          code={code}
+                          onChange={setCode}
+                          setLanguage={setCodeLanguage}
+                        />
                       </div>
 
                       <DialogFooter className="mt-4">
