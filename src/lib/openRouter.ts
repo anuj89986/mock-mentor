@@ -94,7 +94,7 @@ STRICT RULES:
 - finalVerdict must be under 80 words.
 `;
 
-   try {
+  try {
     const completion = await openrouter.chat.completions.create({
       model: "nvidia/nemotron-3-super-120b-a12b:free",
 
@@ -168,39 +168,105 @@ export function parseReport(raw: any) {
   }
 }
 
-export async function scoreAnswers(question: string, answer: string): Promise<number> {
+export async function scoreAnswers(
+  question: string,
+  answer: string,
+): Promise<{
+  overallScore: number;
+  technicalScore: number;
+  communicationScore: number;
+  strength: string;
+  weakness: string;
+}> {
   const prompt = `
-Question asked: "${question}"
-Candidate's answer: "${answer}"
+You are an experienced software engineering interviewer.
 
-Evaluate the answer above.
+Evaluate the candidate's answer objectively.
 
-Return ONLY valid JSON, no markdown:
+Return ONLY valid JSON.
+
 {
-  "score": number between 1-10,
-  "strengths": ["", ""],
-  "weaknesses": ["", ""],
-  "nextFocus": ""
+  "overallScore": number,
+  "technicalScore": number,
+  "communicationScore": number,
+  "strength": "...",
+  "weakness": "..."
 }
+
+Scoring Guide
+
+Overall & Technical
+8-10:
+- Accurate and complete
+- Good reasoning
+- Covers key concepts
+
+5-7:
+- Mostly correct
+- Missing important details
+- Minor misconceptions
+
+0-4:
+- Incorrect
+- Major misconceptions
+- Very incomplete
+
+Communication
+8-10:
+- Clear and well-structured
+
+5-7:
+- Understandable but somewhat unclear
+
+0-4:
+- Difficult to follow or very vague
+
+Rules
+
+- strength: One short phrase (max 8 words).
+- weakness: One short phrase (max 8 words).
+- Be strict but fair.
+- Do not invent mistakes.
+- Return JSON only.
+
+Question:
+${question}
+
+Answer:
+${answer}
 `;
+
 
   try {
     const completion = await openrouter.chat.completions.create({
-      model: "google/gemma-4-26b-a4b-it:free",
+      model: "nvidia/nemotron-3-super-120b-a12b:free",
       messages: [
-        { role: "system", content: "You are a strict interview evaluator. Return ONLY valid JSON." },
-        { role: "user", content: prompt },
+        {
+          role: "system",
+          content: "Return only valid JSON.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
       ],
-      temperature: 0,
-      max_tokens: 300, // fixed
+      response_format: {
+        type: "json_object",
+      },
     });
 
     const raw = completion.choices?.[0]?.message?.content ?? "";
-  const cleaned = raw.replace(/```json|```/g, "").trim();
-  const parsed = JSON.parse(cleaned);
-  return parsed;
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+    return parsed;
   } catch (error) {
     console.error("scoreAnswers error:", error);
-    return 5; // neutral fallback so follow-up still generates
+    return {
+      overallScore: 0,
+      technicalScore: 0,
+      communicationScore: 0,
+      strength: "Error occurred while scoring the answer.",
+      weakness: "Error occurred while scoring the answer.",
+    }; // neutral fallback so follow-up still generates
   }
 }

@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: "gemini-3.1-flash-lite",
   generationConfig: {
     temperature: 0.85,
     responseMimeType: "application/json",
@@ -83,32 +83,59 @@ Resume:${resumeText}
 
 export async function generateFollowUp(
   originalQuestion: string,
-  userAnswer: string,
+  originalAnswer: string,
   followUpCount: number, // 0 or 1
   previousFollowUpQuestion: string,
-  previousFollowUpAnswer: string,
-  score: number
+  latestAnswer: string,
+  score: {
+    overallScore: number;
+    technicalScore: number;
+    communicationScore: number;
+    strength:string;
+    weakness:string;
+  }
 ) {
-  const prompt = `You are a strict, experienced industry interviewer conducting a LIVE interview.
+  const prompt = `You are a senior software engineer conducting a LIVE technical interview.
 
 Original question:
 "${originalQuestion}"
 
+Candidate's original answer:
+"${originalAnswer}"
+
+Previous follow-up:
+"${previousFollowUpQuestion || "None"}"
+
 Candidate's latest answer:
-"${userAnswer}"
+"${latestAnswer || originalAnswer}"
 
-Previous context (if any):
-- Prior follow-up asked: "${previousFollowUpQuestion || "None"}"
-- Candidate's prior answer: "${previousFollowUpAnswer || "None"}"
+Evaluation:
+- Overall Score: ${score.overallScore}
+- Technical Score: ${score.technicalScore}
+- Communication Score: ${score.communicationScore}
+- Strength: "${score.strength}"
+- Weakness: "${score.weakness}"
 
-Current follow-up number: ${followUpCount + 1} of 2
+Current follow-up: ${followUpCount + 1} of 2
 
 Your task:
-* Ask EXACTLY ONE short, natural follow-up question based on the candidate's LATEST answer.
+* * Ask EXACTLY ONE short, natural follow-up question that continues the interview using the candidate's latest answer while staying focused on the original question.
 * The question must sound like a spontaneous, spoken reaction in a real interview.
 * Keep it concise: maximum 2 sentences, under 30 words.
 * NEVER repeat a previous question. Dig deeper or pivot if they are stuck.
 * Avoid robotic phrasing, corporate jargon, or textbook definitions.
+
+Guidelines:
+- - Base the question primarily on the candidate's latest answer, using the original answer and identified weakness as additional context.
+- Use the score only to adjust difficulty.
+- If Technical Score >= 8, ask an advanced question involving edge cases, optimization, scalability, trade-offs, or production scenarios.
+- If Technical Score is 5-7, verify understanding or ask about the missing detail.
+- If Technical Score < 5, ask a simpler conceptual question or pivot to a related fundamental topic.
+- If Communication Score is low, keep the question short and direct.
+- Never repeat the original question or any previous follow-up.
+- Sound like a real interviewer, not an AI.
+- Maximum 2 sentences.
+- Under 30 words.
 
 QUESTION TYPE DEFINITIONS:
 * Set "followUpType" to "coding" ONLY IF you are explicitly asking them to write code, solve an algorithm, or type out an implementation based on their answer.

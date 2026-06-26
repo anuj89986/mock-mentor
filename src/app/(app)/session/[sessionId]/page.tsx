@@ -86,10 +86,11 @@ const page = ({ params }: PageProps) => {
   const { speak, stop, isSpeaking } = useTextToSpeech();
   const [iscodeEditorReq, setIsCodeEditorReq] = useState<boolean>(false);
   const [sessionScore, setSessionScore] = useState<{
-    score: number;
-    strengths: string[];
-    weaknesses: string[];
-    nextFocus: string;
+    overallScore: number;
+    technicalScore: number;
+    communicationScore: number;
+    strength: string;
+    weakness: string;
   } | null>(null);
 
   const defaultCode = {
@@ -200,10 +201,10 @@ int main() {
 
   const fetchFollowUpQuestion = async (
     originalQuestion: string,
-    userAnswer: string,
+    originalAnswer: string,
     followUpCount: number,
     previousFollowUpQuestion: string,
-    previousFollowUpAnswer: string,
+    latestAnswer: string,
   ) => {
     try {
       setFetchingFollowUp(true);
@@ -211,10 +212,10 @@ int main() {
         `/api/session/${sessionId}/followup-question`,
         {
           originalQuestion,
-          userAnswer,
+          originalAnswer,
           followUpCount,
           previousFollowUpQuestion,
-          previousFollowUpAnswer,
+          latestAnswer,
         },
       );
       if (res.data.followUpQuestion?.followUpType === "coding") {
@@ -332,6 +333,7 @@ int main() {
       setIsInterviewCompleted(true);
     }
   };
+  console.log("All Responses:", allResponses);
 
   const startListening = async () => {
     if (isListening) return;
