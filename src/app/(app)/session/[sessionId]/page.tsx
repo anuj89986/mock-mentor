@@ -92,6 +92,8 @@ const page = ({ params }: PageProps) => {
     strength: string;
     weakness: string;
   } | null>(null);
+  const [dynamicQuestionCount, setDynamicQuestionCount] = useState(0);
+  const MAX_DYNAMIC_QUESTIONS = 1;
 
   const defaultCode = {
     java: `public class Main {
@@ -125,6 +127,9 @@ int main() {
   const [code, setCode] = useState<Record<Language, string>>(defaultCode);
   const [codeLanguage, setCodeLanguage] = useState<Language>("java");
   const [iscodeEditorOpen, setIsCodeEditorOpen] = useState<boolean>(false);
+  const [currentMainQuestion, setCurrentMainQuestion] = useState<string>(
+    initialQuestions[0]?.questionText || "",
+  );
   // console.log("Current code state:", code);
 
   useEffect(() => {
@@ -150,6 +155,7 @@ int main() {
                   },
                 ],
           );
+          setCurrentMainQuestion(questions[0].questionText || "");
           setLatestAssistantText(questions[0].questionText);
         }
       } catch (error) {
@@ -225,7 +231,7 @@ int main() {
       }
       return {
         question: res.data.followUpQuestion?.followUpQuestion as string,
-        score: res.data.followUpQuestion?.score ?? null,
+        score: res.data.score ?? null,
       };
     } catch (error) {
       console.error("Error fetching follow-up question:", error);
@@ -250,10 +256,7 @@ int main() {
     const currentAnswer = response.text;
 
     const newResponse: IResponse = {
-      question:
-        followUpCounter === 0
-          ? initialQuestions[initialQuestionCounter - 1]?.questionText || ""
-          : followUpQuestion,
+      question: followUpCounter === 0 ? currentMainQuestion : followUpQuestion,
       response: currentAnswer,
       questionType: followUpCounter === 0 ? "initial" : "followUp",
       score: null,
@@ -266,23 +269,28 @@ int main() {
         followUpCounter === 0 ? currentAnswer : initialResponse;
 
       const { question, score } = await fetchFollowUpQuestion(
-        initialQuestions[initialQuestionCounter - 1]?.questionText || "",
+        currentMainQuestion,
         baseAnswer,
         followUpCounter,
         followUpCounter === 0 ? "" : followUpQuestion,
         followUpCounter === 0 ? "" : currentAnswer,
       );
       if (score) {
-        setSessionScore(score);
-        setAllResponses((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
-            score,
-          };
-          return updated;
-        });
-      }
+  setSessionScore(score);
+  setAllResponses((prev) => {
+    const updated = [...prev];
+    const initialIndex = updated.findLastIndex(
+      (r) => r.questionType === "initial"
+    );
+    if (initialIndex !== -1) {
+      updated[initialIndex] = {
+        ...updated[initialIndex],
+        score,
+      };
+    }
+    return updated;
+  });
+}
 
       if (followUpCounter === 0) setInitialResponse(currentAnswer);
 
@@ -299,41 +307,53 @@ int main() {
         setLatestAssistantText(question);
         setFollowUpCounter((prev) => prev + 1);
       }
-    } else if (
-      initialQuestionCounter < initialQuestions.length &&
-      followUpCounter > 1
-    ) {
-      if (initialQuestions[initialQuestionCounter].questionType === "coding") {
-        setIsCodeEditorReq(true);
-      } else {
-        setIsCodeEditorReq(false);
+    } else if (followUpCounter > 1) {
+      if (dynamicQuestionCount >= MAX_DYNAMIC_QUESTIONS) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            title: "Mock Mentor",
+            content: "Interview is Over. You can now exit.",
+          },
+        ]);
+        setIsInterviewCompleted(true);
+        return;
       }
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          title: "Mock Mentor",
-          content: initialQuestions[initialQuestionCounter].questionText,
-        },
-      ]);
-      setInitialQuestionCounter((prev) => prev + 1);
-      setFollowUpCounter(0);
-      setLatestAssistantText(
-        initialQuestions[initialQuestionCounter].questionText,
-      );
-    } else {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          title: "Mock Mentor",
-          content: "Interview is Over Now You can Exit",
-        },
-      ]);
-      setIsInterviewCompleted(true);
+
+      setFetchingFollowUp(true);
+
+      try {
+        const res = await axios.post(`/api/session/${sessionId}/next-question`,{
+          sessionId,
+          sessionScore,
+        });
+        const nextQ = res.data.question;
+
+        setIsCodeEditorReq(nextQ.questionType === "coding");
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            title: "Mock Mentor",
+            content: nextQ.questionText,
+          },
+        ]);
+
+        setCurrentMainQuestion(nextQ.questionText);
+        setLatestAssistantText(nextQ.questionText);
+        setFollowUpCounter(0);
+        setInitialResponse("");
+        setDynamicQuestionCount((prev) => prev + 1);
+      } catch (error) {
+        console.error("Error fetching next question:", error);
+      } finally {
+        setFetchingFollowUp(false);
+      }
     }
   };
-  console.log("All Responses:", allResponses);
+  console.log(allResponses);
 
   const startListening = async () => {
     if (isListening) return;

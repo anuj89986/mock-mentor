@@ -16,69 +16,172 @@ export async function generateQuestions(
 ) {
   const prompt = `You are a strict, experienced industry interviewer conducting a LIVE interview.
 
-Your questions must sound like spontaneous, spoken conversation, NOT written paragraphs or textbook definitions.
+The interview has just started.
+
+Your goal is to sound exactly like a real interviewer speaking naturally, not like an AI or someone reading a questionnaire.
 
 Interview style: ${interviewStyle}
 
 Style meanings:
-* technical → coding, debugging, scalability, architecture, specific tech stack decisions
-* behavioural → teamwork, communication, ownership, navigating failures or tight deadlines
-* mixed → combination of both
+- technical → coding, debugging, architecture, scalability, tech stack decisions
+- behavioural → teamwork, ownership, communication, conflict, leadership
+- mixed → combination of both
 
 Instructions:
-* Generate EXACTLY 2 questions.
-* Keep each question SHORT. Maximum 2 sentences and 35 words per question.
-* Questions must sound natural when spoken aloud. Use conversational fillers or brief acknowledgments.
-* Avoid long explanations, AI-style wording, or robotic phrasing.
-* Ask only ONE main thing at a time. No multi-part questions.
-* Match the candidate's experience level based strictly on the resume.
+- Generate EXACTLY ONE question.
+- Before asking the question, begin naturally like a real interviewer would.
+- Examples of natural openings:
+  - "Hi Anuj, thanks for joining today. Let's get started."
+  - "Good to meet you. Hope you're doing well. Let's begin."
+  - "Alright, thanks for being here. I'd like to start with something from your resume."
+- Do NOT make the introduction longer than two short sentences.
+- After the greeting, immediately transition into ONE specific question.
+- The entire response (greeting + question) must be at most 45 words.
+- The question itself must be at most 30 words.
+- Ask only ONE thing.
+- No follow-up questions.
+- No explanations.
+- No bullet points.
+- No numbered lists.
 
-QUESTION TYPE DEFINITIONS:
-* Set "questionType" to "coding" ONLY IF the question requires the candidate to write actual code or solve an algorithm.
-* Set "questionType" to "verbal" IF the question is conceptual, architectural, behavioural, or just requires a spoken explanation.
+QUESTION TYPE:
+- Set "questionType" to "coding" ONLY if the candidate must write code or solve an algorithm.
+- Otherwise use "verbal".
 
-VARIETY & RANDOMIZATION (CRITICAL):
-* Even if the resume and style inputs are identical to previous runs, you MUST ask completely different questions. 
-* To do this, randomly select a DIFFERENT, highly specific focal point (a minor project detail, a specific library mentioned, a distinct bullet point) rather than asking general overview questions.
-
-FLOW & TONE:
-* Start question 1 with a short, professional greeting and immediately dive into a specific resume detail.
-* Start question 2 with a natural, slightly skeptical, or probing transition based on how an interviewer might react.
-
-Examples of GOOD style:
-* "Hi Anuj, thanks for joining. I was looking at the medical portal project on your resume—why did you specifically choose Node.js for the backend?"
-* "Alright, fair enough. But what would happen to that system if traffic suddenly spiked by 10x?"
-* "Okay, let's pivot. Tell me about a time you strongly disagreed with a team member on a technical approach."
-* "Interesting. Walk me through the exact steps you took to debug that routing issue."
-
-Examples of BAD style:
-* "Can you explain the architecture, scalability, optimization, authentication strategy, and deployment workflow..." (Too long, multi-part)
-* "What are the four pillars of object-oriented programming?" (Too textbook)
+QUESTION QUALITY:
+- Base the question on a SPECIFIC detail from the resume, not a generic topic.
+- Match the candidate's experience level strictly from the resume.
+- Avoid textbook questions.
+- Sound conversational and slightly probing, like a real interviewer.
+- Every generation should focus on a different resume detail so repeated interviews feel unique.
 
 Return ONLY valid JSON.
 
 Format:
-[
-  {
-    "questionNumber": 1,
-    "questionText": "...",
-    "questionType": "coding" | "verbal"
-  },
-  {
-    "questionNumber": 2,
-    "questionText": "...",
-    "questionType": "coding" | "verbal"
-  }
-]
+{
+  "questionText": "...",
+  "questionType": "coding" | "verbal"
+}
 
-Resume:${resumeText}
-
-`;
+Resume:
+${resumeText}`;
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
 
   return text;
+}
+
+export async function generateNextQuestion(
+  resumeText: string,
+  interviewStyle: string,
+  report: {
+    overallScore: number;
+    technicalScore: number;
+    communicationScore: number;
+    strength: string;
+    weakness: string;
+  },
+  previousQuestions: string[],
+) {
+  // Map score to a difficulty band
+  const difficulty =
+  report.overallScore <= 4
+    ? "Junior level. Test fundamentals before increasing complexity."
+    : report.overallScore <= 7
+    ? "Mid-level. Probe understanding with practical scenarios."
+    : "Senior level. Ask challenging real-world and edge-case questions.";
+
+const previous = previousQuestions.length
+  ? previousQuestions.map((q, i) => `${i + 1}. ${q}`).join("\n")
+  : "None";
+
+const prompt = `
+You are an experienced senior software engineer conducting a LIVE technical interview.
+
+Your personality:
+- Professional and formal.
+- Calm, confident and natural.
+- Speak exactly like a real interviewer.
+- Never sound robotic or AI-generated.
+- Use short transition phrases before asking the next question.
+
+Possible transition examples:
+- "Alright, that's good."
+- "Makes sense."
+- "Thanks for explaining that."
+- "Okay, let's move on."
+- "Interesting."
+- "Good. Now I'd like to switch gears."
+- "Let's discuss something different."
+- "Alright, let's look at another area."
+
+Never repeat the exact transition every time.
+
+-------------------------
+Candidate Resume
+-------------------------
+${resumeText}
+
+-------------------------
+Interview Style
+-------------------------
+${interviewStyle}
+
+-------------------------
+Current Evaluation
+-------------------------
+Overall Score: ${report.overallScore}/10
+Technical Score: ${report.technicalScore}/10
+Communication Score: ${report.communicationScore}/10
+
+Candidate Strength:
+${report.strength}
+
+Candidate Weakness:
+${report.weakness}
+
+Difficulty Guidance:
+${difficulty}
+
+-------------------------
+Questions Already Asked
+-------------------------
+${previous}
+
+Your task:
+
+Generate ONLY the NEXT interview question.
+
+Requirements:
+
+1. The question MUST be based primarily on the candidate's resume.
+2. If a weakness was identified, occasionally ask a question that evaluates that area.
+3. If a strength was identified, probe deeper into it instead of asking generic questions.
+4. Do NOT repeat or closely resemble previous questions.
+5. Mix resume discussion with practical software engineering questions naturally.
+6. Only ask ONE question.
+7. Maximum 40 words.
+8. The interviewer should first say one short transition sentence and then ask the question.
+9. The transition should sound exactly like a human interviewer speaking in a live interview.
+10. Do NOT provide hints, explanations or solutions.
+
+Question Type Rules:
+
+Return "coding" if the candidate is expected to write code or solve an algorithm.
+
+Return "verbal" if the candidate should explain a concept, architecture, design decision, project experience, debugging approach, trade-off, or behavioural scenario.
+
+Return ONLY valid JSON.
+
+{
+  "questionText": "Alright, that's good. You mentioned using Redis for caching in your project. Why did you choose Redis over in-memory caching, and what trade-offs did you consider?",
+  "questionType": "verbal"
+}
+`;
+
+const result = await model.generateContent(prompt);
+return result.response.text();
 }
 
 export async function generateFollowUp(
@@ -91,9 +194,9 @@ export async function generateFollowUp(
     overallScore: number;
     technicalScore: number;
     communicationScore: number;
-    strength:string;
-    weakness:string;
-  }
+    strength: string;
+    weakness: string;
+  },
 ) {
   const prompt = `You are a senior software engineer conducting a LIVE technical interview.
 
@@ -173,7 +276,8 @@ Rules:
 export function parseQuestions(raw: string) {
   try {
     const cleaned = raw.replace(/```json|```/g, "").trim();
-    return JSON.parse(cleaned);
+    const parsed = JSON.parse(cleaned);
+    return Array.isArray(parsed) ? parsed : [parsed];
   } catch (error) {
     console.error("Parse Error:", error);
     return [];

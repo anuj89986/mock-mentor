@@ -12,6 +12,7 @@ export interface ISession extends Document{
     report?: mongoose.Types.ObjectId;
     interviewStyle : string;
     initialQuestions : IQuestion[];
+    dynamicQuestions?: IQuestion[];
     status : string;
     createdAt?:Date;
 }
@@ -31,6 +32,14 @@ const SessionSchema = new Schema<ISession>({
         default:undefined
     },
     initialQuestions:{
+        type:[{
+            questionNumber : Number,
+            questionText : String,
+            questionType : String
+        }],
+        default:[]
+    },
+    dynamicQuestions:{
         type:[{
             questionNumber : Number,
             questionText : String,
