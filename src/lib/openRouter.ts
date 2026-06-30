@@ -12,39 +12,68 @@ export const openrouter = new OpenAI({
 
 export async function generateReport(resumeText: string, interviewData: any) {
   const prompt = `
-You are an expert AI interview evaluator.
+You are an experienced Senior Software Engineer conducting a post-interview evaluation.
 
-Analyze the candidate based on:
-1. Resume
-2. Interview responses
-3. Follow-up performance
+Your goal is to fairly evaluate a candidate based on their resume and interview performance.
 
-IMPORTANT RULES:
-- Follow-up answers are more important than initial answers.
-- Be realistic and strict in evaluation.
-- Keep all explanations concise and professional.
-- Return ONLY valid JSON.
-- Do not use markdown.
-- Do not add \`\`\`json.
-- Ensure all strings are properly escaped.
-- Keep summaries short.
-- Keep question analysis brief (max 1 short sentence).
-- ALL scores must be integers between 1 and 100.
+## Evaluation Principles
 
-SCORING GUIDE:
-- 90-100 = Exceptional / expert-level
-- 70-89 = Strong
-- 50-69 = Average
-- 30-49 = Weak
-- Below 30 = Poor
+- Be fair, balanced and professional.
+- Reward demonstrated knowledge.
+- Do not be overly strict.
+- Do not be overly generous.
+- Give credit for partially correct reasoning.
+- Minor mistakes should only slightly reduce scores.
+- Consider the entire interview, not just one answer.
+- Follow-up responses should have a higher impact because they demonstrate deeper understanding.
+- Assume this is an internship or entry-level software engineering interview unless the resume clearly indicates otherwise.
+
+## Score Guidelines
+
+95-100: Exceptional
+
+90-94: Excellent
+
+80-89: Strong
+
+70-79: Good
+
+60-69: Average
+
+50-59: Below Average
+
+Below 50: Poor
+
+Scoring notes:
+
+- Most competent internship candidates should naturally score between 70 and 85.
+- Reserve 90+ for outstanding candidates.
+- Reserve below 50 for candidates who struggled throughout the interview.
+- Base scores only on demonstrated performance.
+
+Evaluate:
+
+- Technical knowledge
+- Problem solving
+- Communication
+- Confidence
+- Resume consistency
+- Follow-up performance
+- Practical software engineering understanding
 
 Resume:
+
 ${resumeText}
 
 Interview Data:
+
 ${JSON.stringify(interviewData)}
 
-Return EXACTLY this JSON structure:
+Return ONLY valid JSON.
+
+Do not return markdown.
+
+Return EXACTLY this schema:
 
 {
   "overallScore": 0,
@@ -86,12 +115,18 @@ Return EXACTLY this JSON structure:
   "finalVerdict": ""
 }
 
-STRICT RULES:
+Rules:
+
+- Return ONLY the JSON object.
 - Do not omit any field.
 - Do not add extra fields.
-- All arrays must contain concise items only.
-- questionAnalysis.analysis must be very short.
-- finalVerdict must be under 80 words.
+- All scores must be integers between 1 and 100.
+- strengths: 3-6 concise items.
+- weaknesses: 2-5 concise items.
+- improvements: actionable suggestions.
+- summary: under 80 words.
+- questionAnalysis.analysis: one short sentence (max 20 words).
+- finalVerdict: under 80 words.
 `;
 
   try {
@@ -102,7 +137,7 @@ STRICT RULES:
         {
           role: "system",
           content:
-            "You are a strict interview evaluator. Return ONLY valid JSON.",
+            "You are an experienced software engineering interviewer. Evaluate candidates fairly and consistently. Return ONLY valid JSON.",
         },
         {
           role: "user",
@@ -235,7 +270,6 @@ ${question}
 Answer:
 ${answer}
 `;
-
 
   try {
     const completion = await openrouter.chat.completions.create({

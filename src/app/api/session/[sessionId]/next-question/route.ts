@@ -7,10 +7,10 @@ import ResumeModel from "@/model/Resume";
 import { generateNextQuestion } from "@/lib/gemini";
 
 export async function POST(request: Request) {
-  // const session = await getServerSession(authOption);
-  // if (!session) {
-  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  // }
+  const session = await getServerSession(authOption);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { sessionId, sessionScore } = await request.json();
   if (!sessionId || sessionScore === undefined) {
@@ -36,10 +36,12 @@ export async function POST(request: Request) {
     ...(interviewSession.initialQuestions?.map((q: any) => q.questionText) ?? []),
     ...(interviewSession.dynamicQuestions?.map((q: any) => q.questionText) ?? []),
   ];
+  const nextQuestionType = interviewSession.interviewStyle == "technical" || interviewSession.interviewStyle == "mixed" ? 
+  Math.random() < 0.5 ? "coding" : "verbal" : "verbal";
 
   const raw = await generateNextQuestion(
     resume.extractedText,
-    interviewSession.interviewStyle,
+    nextQuestionType,
     sessionScore,
     previousQuestions,
   );
@@ -59,6 +61,5 @@ export async function POST(request: Request) {
   await SessionModel.findByIdAndUpdate(sessionId, {
     $push: { dynamicQuestions: parsed },
   });
-  console.log("Session ID:", sessionId);
   return NextResponse.json({ question: parsed });
 }

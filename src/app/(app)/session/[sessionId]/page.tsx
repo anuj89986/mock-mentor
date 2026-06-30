@@ -56,7 +56,6 @@ interface IResponse {
   question: string;
   response: string;
   questionType: "initial" | "followUp";
-  score: number | null;
 }
 type Language = "java" | "javascript" | "python" | "cpp" | "none";
 
@@ -91,7 +90,7 @@ const page = ({ params }: PageProps) => {
     communicationScore: number;
     strength: string;
     weakness: string;
-  } | null>(null);
+  }>(null as any);
   const [dynamicQuestionCount, setDynamicQuestionCount] = useState(0);
   const MAX_DYNAMIC_QUESTIONS = 1;
 
@@ -130,7 +129,7 @@ int main() {
   const [currentMainQuestion, setCurrentMainQuestion] = useState<string>(
     initialQuestions[0]?.questionText || "",
   );
-  // console.log("Current code state:", code);
+  const [cycleScore, setCycleScore] = useState<(typeof sessionScore)[]>([]);
 
   useEffect(() => {
     const fetchInitialQuestions = async () => {
@@ -259,7 +258,6 @@ int main() {
       question: followUpCounter === 0 ? currentMainQuestion : followUpQuestion,
       response: currentAnswer,
       questionType: followUpCounter === 0 ? "initial" : "followUp",
-      score: null,
     };
 
     setAllResponses((prev) => [...prev, newResponse]);
@@ -276,21 +274,9 @@ int main() {
         followUpCounter === 0 ? "" : currentAnswer,
       );
       if (score) {
-  setSessionScore(score);
-  setAllResponses((prev) => {
-    const updated = [...prev];
-    const initialIndex = updated.findLastIndex(
-      (r) => r.questionType === "initial"
-    );
-    if (initialIndex !== -1) {
-      updated[initialIndex] = {
-        ...updated[initialIndex],
-        score,
-      };
-    }
-    return updated;
-  });
-}
+        setSessionScore(score);
+        setCycleScore((prev) => [...prev, score]);
+      }
 
       if (followUpCounter === 0) setInitialResponse(currentAnswer);
 
@@ -324,13 +310,34 @@ int main() {
       setFetchingFollowUp(true);
 
       try {
-        const res = await axios.post(`/api/session/${sessionId}/next-question`,{
-          sessionId,
-          sessionScore,
-        });
+        const allScores = cycleScore;
+        const avgScore = {
+          overallScore: Math.round(
+            allScores.reduce((s, c) => s + c.overallScore, 0) /
+              allScores.length,
+          ),
+          technicalScore: Math.round(
+            allScores.reduce((s, c) => s + c.technicalScore, 0) /
+              allScores.length,
+          ),
+          communicationScore: Math.round(
+            allScores.reduce((s, c) => s + c.communicationScore, 0) /
+              allScores.length,
+          ),
+          strength: allScores[allScores.length - 1].strength,
+          weakness: allScores[allScores.length - 1].weakness,
+        };
+        const res = await axios.post(
+          `/api/session/${sessionId}/next-question`,
+          {
+            sessionId,
+            sessionScore: avgScore,
+          },
+        );
         const nextQ = res.data.question;
 
         setIsCodeEditorReq(nextQ.questionType === "coding");
+        setCycleScore([]);
 
         setMessages((prev) => [
           ...prev,
@@ -353,7 +360,6 @@ int main() {
       }
     }
   };
-  console.log(allResponses);
 
   const startListening = async () => {
     if (isListening) return;
