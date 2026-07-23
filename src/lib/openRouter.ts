@@ -12,54 +12,24 @@ export const openrouter = new OpenAI({
 
 export async function generateReport(resumeText: string, interviewData: any) {
   const prompt = `
-You are an experienced Senior Software Engineer conducting a post-interview evaluation.
+You are a Senior Software Engineer evaluating an internship-level interview.
 
-Your goal is to fairly evaluate a candidate based on their resume and interview performance.
+Evaluate the candidate fairly based on the resume and interview.
 
-## Evaluation Principles
-
-- Be fair, balanced and professional.
+Guidelines:
+- Be balanced and professional.
 - Reward demonstrated knowledge.
-- Do not be overly strict.
-- Do not be overly generous.
-- Give credit for partially correct reasoning.
-- Minor mistakes should only slightly reduce scores.
-- Consider the entire interview, not just one answer.
-- Follow-up responses should have a higher impact because they demonstrate deeper understanding.
-- Assume this is an internship or entry-level software engineering interview unless the resume clearly indicates otherwise.
-
-## Score Guidelines
-
-95-100: Exceptional
-
-90-94: Excellent
-
-80-89: Strong
-
-70-79: Good
-
-60-69: Average
-
-50-59: Below Average
-
-Below 50: Poor
-
-Scoring notes:
-
-- Most competent internship candidates should naturally score between 70 and 85.
-- Reserve 90+ for outstanding candidates.
-- Reserve below 50 for candidates who struggled throughout the interview.
-- Base scores only on demonstrated performance.
+- Give partial credit where appropriate.
+- Follow-up answers should influence the evaluation.
+- Most good candidates should score between 70 and 85.
+- Reserve 90+ for exceptional performance.
 
 Evaluate:
-
 - Technical knowledge
 - Problem solving
 - Communication
 - Confidence
 - Resume consistency
-- Follow-up performance
-- Practical software engineering understanding
 
 Resume:
 
@@ -70,10 +40,6 @@ Interview Data:
 ${JSON.stringify(interviewData)}
 
 Return ONLY valid JSON.
-
-Do not return markdown.
-
-Return EXACTLY this schema:
 
 {
   "overallScore": 0,
@@ -88,50 +54,22 @@ Return EXACTLY this schema:
 
   "summary": "",
 
-  "hireRecommendation": {
-    "decision": "",
-    "level": "",
-    "recommendedConfidence": 0
-  },
-
-  "improvements": [],
-
-  "resumeAnalysis": {
-    "claimedSkills": [],
-    "validatedSkills": [],
-    "missingDepthAreas": [],
-    "strongAreas": []
-  },
-
-  "questionAnalysis": [
-    {
-      "question": "",
-      "questionType": "",
-      "analysis": "",
-      "score": 0
-    }
-  ],
-
-  "finalVerdict": ""
+  "improvements": []
 }
 
 Rules:
-
-- Return ONLY the JSON object.
-- Do not omit any field.
+- Return only the JSON object.
 - Do not add extra fields.
-- All scores must be integers between 1 and 100.
-- strengths: 3-6 concise items.
-- weaknesses: 2-5 concise items.
-- improvements: actionable suggestions.
+- All scores must be integers from 1-100.
+- strengths: 3-5 concise points.
+- weaknesses: 2-4 concise points.
+- improvements: 3-5 actionable suggestions.
 - summary: under 80 words.
-- questionAnalysis.analysis: one short sentence (max 20 words).
-- finalVerdict: under 80 words.
 `;
 
   try {
     const completion = await openrouter.chat.completions.create({
-      model: "nvidia/nemotron-3-super-120b-a12b:free",
+      model: "nvidia/nemotron-3-ultra-550b-a55b:free",
 
       messages: [
         {
@@ -146,7 +84,7 @@ Rules:
       ],
 
       temperature: 0.2,
-      max_tokens: 4000,
+      max_tokens: 5000,
     });
     const raw = completion.choices?.[0]?.message?.content;
 

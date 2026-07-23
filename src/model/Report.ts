@@ -11,64 +11,11 @@ interface IReport extends Document{
     strengths : string[];
     weaknesses : string[];
     summary : string;
-    hireRecommendation : {
-        decision : string;
-        level : string;
-        recommendedConfidence : number;
-    };
     improvements : string[];
-    resumeAnalysis : {
-        claimedSkills : string[];
-        validatedSkills : string[];
-        missingDepthAreas : string[];
-        strongAreas : string[];
-    };
-    questionAnalysis :object[];
-    finalVerdict : string;
     createdAt?:Date;
 }
 
-const HireRecommendationSchema = new Schema({
-    decision:{
-        type:String,
-    },
-    level:{
-        type:String,
-    },
-    recommendedConfidence:{
-        type:Number,
-    }
-});
 
-const ResumeAnalysisSchema = new Schema({
-    claimedSkills:{
-        type:[String]
-    },
-    validatedSkills:{
-        type:[String]
-    },
-    missingDepthAreas:{
-        type:[String]
-    },
-    strongAreas:{
-        type:[String]
-    }
-});
-
-const QuestionAnalysisSchema = new Schema({
-    question:{
-        type:String
-    },
-    questionType:{
-        type:String
-    },
-    analysis:{
-        type:String
-    },
-    score:{
-        type:Number
-    }
-});
 
 const ReportSchema = new Schema<IReport>({
     sessionId:{
@@ -105,20 +52,8 @@ const ReportSchema = new Schema<IReport>({
     summary:{
         type:String
     },
-    hireRecommendation:{
-        type:HireRecommendationSchema
-    },
     improvements:{
         type:[String]
-    },
-    resumeAnalysis:{
-        type:ResumeAnalysisSchema
-    },
-    questionAnalysis:{
-        type:[QuestionAnalysisSchema]
-    },
-    finalVerdict:{
-        type:String
     },
     createdAt:{
         type:Date,
