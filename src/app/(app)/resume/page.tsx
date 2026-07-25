@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Upload,
   FileText,
-  CheckCircle,
+  CheckCircle2,
   AlertCircle,
   Trash2,
   Download,
@@ -54,11 +54,16 @@ export default function ResumePage() {
 
   if (!session) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black flex-col gap-6 px-4">
-        <div className="text-white text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F3EBDD] p-6 gap-6 text-[#5C5147] selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+        <div className="text-base md:text-lg font-medium tracking-wide text-center text-[#2B2118]">
           Please sign in to upload a resume.
         </div>
-        <Button onClick={() => router.push("/")}>Go to Home</Button>
+        <Button
+          onClick={() => router.push("/")}
+          className="bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] font-medium rounded-2xl px-8 py-6 transition-all duration-200 ease-out w-full sm:w-auto shadow-sm"
+        >
+          Go to Home
+        </Button>
       </div>
     );
   }
@@ -122,25 +127,26 @@ export default function ResumePage() {
   };
 
   const handleFileOpen = (fileUrl: string) => {
-    window.open(fileUrl, "_blank","noopener,noreferrer");
+    window.open(fileUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white overflow-hidden w-screen">
-      <main className="flex-1 overflow-auto">
-        {/* Top Bar */}
-        <div className="border-b border-white/10 bg-white/5 backdrop-blur-md sticky top-0 z-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6">
-            <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold">
+    <div className="flex flex-col h-screen bg-[#F3EBDD] text-[#5C5147] font-sans overflow-hidden selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+      <main className="flex-1 overflow-auto pb-10">
+        
+        {/* Top Header - Paper Layer */}
+        <div className="sticky top-0 z-10 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] pt-6 pb-4 md:pt-8 transition-all duration-200 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 md:px-12 max-w-6xl mx-auto gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-[#2B2118] truncate mb-1 md:mb-2">
                 Resume Management
               </h1>
-              <p className="text-gray-400 mt-1 text-sm sm:text-base">
-                Upload and manage your resume for interviews
+              <p className="text-[#8D8175] text-xs md:text-sm font-normal truncate">
+                Upload and manage your resumes for personalized interviews.
               </p>
             </div>
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0">
-              <span className="font-semibold text-sm sm:text-base">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#FFFDF8] border border-[#D8CDBD] flex items-center justify-center text-[#8C5A3C] shrink-0 shadow-sm">
+              <span className="font-medium text-sm md:text-base">
                 {session.user?.name?.charAt(0).toUpperCase()}
               </span>
             </div>
@@ -148,31 +154,39 @@ export default function ResumePage() {
         </div>
 
         {/* Content */}
-        <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 w-full max-w-5xl mx-auto">
-          {/* Hero / Upload */}
-          <div className="p-6 sm:p-8 rounded-lg bg-white/5 border border-white/10 border-dashed hover:border-blue-500/30 transition">
-            <div className="grid md:grid-cols-[1.2fr_1fr] gap-6 items-center">
+        <div className="px-5 md:px-12 py-8 md:py-10 space-y-6 sm:space-y-8 w-full max-w-6xl mx-auto">
+          
+          {/* Alerts */}
+          {error && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#FFFDF8] border border-[#8C5A3C]/30 flex items-start sm:items-center gap-3 shadow-sm">
+              <AlertCircle className="w-5 h-5 text-[#8C5A3C] shrink-0 mt-0.5 sm:mt-0" />
+              <p className="text-[#8C5A3C] text-sm sm:text-base font-medium">{error}</p>
+            </div>
+          )}
+
+          {/* Hero / Upload - Card Layer */}
+          <div className="p-6 md:p-8 rounded-2xl bg-[#FFFDF8] border border-[#D8CDBD] border-dashed hover:border-[#8C5A3C]/50 transition-all duration-300 ease-out shadow-sm group">
+            <div className="grid md:grid-cols-[1.5fr_1fr] gap-8 items-center">
               <div>
-                <div className="flex items-center gap-2 text-blue-400 mb-3">
-                  <Sparkles className="w-5 h-5" />
-                  <span className="text-sm font-semibold">
-                    AI Interview Ready
-                  </span>
+                <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 rounded-full border border-[#D8CDBD] bg-[#FBF7EF] text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  AI Interview Ready
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold mb-2">
+                <h2 className="text-xl md:text-2xl font-medium text-[#2B2118] mb-2 tracking-wide">
                   Upload Your Resume
                 </h2>
-                <p className="text-gray-400 text-sm sm:text-base">
-                  We parse your resume to personalize mock interviews,
-                  strengths, and growth areas.
+                <p className="text-[#8D8175] text-sm sm:text-base leading-relaxed mb-4">
+                  We analyze your resume to generate personalized mock interviews, highlighting your specific strengths and tailoring questions to your experience level.
                 </p>
-                <p className="text-xs text-gray-500 mt-3">
+                <p className="text-xs font-medium uppercase tracking-widest text-[#8D8175]">
                   Supported formats: PDF, DOC, DOCX (Max 10MB)
                 </p>
               </div>
 
-              <div className="flex flex-col items-center justify-center gap-4">
-                <Upload className="w-10 h-10 sm:w-12 sm:h-12 text-blue-400" />
+              <div className="flex flex-col items-center justify-center gap-5 p-6 rounded-xl bg-[#FBF7EF] border border-[#D8CDBD] group-hover:border-[#8C5A3C]/30 transition-colors">
+                <div className="w-16 h-16 rounded-full bg-[#FFFDF8] border border-[#D8CDBD] flex items-center justify-center shadow-sm">
+                  <Upload className="w-7 h-7 text-[#8C5A3C]" />
+                </div>
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -182,7 +196,7 @@ export default function ResumePage() {
                 />
                 <Button
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-blue-600 hover:bg-blue-700 text-sm sm:text-base"
+                  className="bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-2xl px-6 shadow-md transition-all duration-200 ease-out font-medium w-full sm:w-auto"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   Choose File
@@ -191,137 +205,137 @@ export default function ResumePage() {
             </div>
           </div>
 
-          {/* Alerts */}
-          {error && (
-            <div className="p-3 sm:p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-start sm:items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5 sm:mt-0" />
-              <p className="text-red-400 text-sm sm:text-base">{error}</p>
-            </div>
-          )}
-
-          {/* File Preview */}
+          {/* Selected File Preview */}
           {uploadedFile && (
-            <div className="p-4 sm:p-6 rounded-lg bg-white/5 border border-white/10">
-              <h3 className="text-base sm:text-lg font-bold mb-4">
+            <div className="p-6 md:p-8 rounded-2xl bg-[#FFFDF8] border border-[#D8CDBD] shadow-sm">
+              <h3 className="text-base sm:text-lg font-medium text-[#2B2118] mb-4">
                 Selected File
               </h3>
-              <div className="p-3 sm:p-4 rounded-lg bg-white/5 border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                  <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400 shrink-0" />
+              <div className="p-4 sm:p-5 rounded-xl bg-[#FBF7EF] border border-[#D8CDBD] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 transition-colors">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="w-12 h-12 rounded-xl bg-[#FFFDF8] border border-[#D8CDBD] flex items-center justify-center shrink-0 shadow-sm">
+                    <FileText className="w-6 h-6 text-[#8C5A3C]" />
+                  </div>
                   <div className="min-w-0">
-                    <p className="font-semibold truncate text-sm sm:text-base">
+                    <p className="font-medium text-[#2B2118] truncate text-sm sm:text-base">
                       {uploadedFile.name}
                     </p>
-                    <p className="text-xs sm:text-sm text-gray-400">
+                    <p className="text-xs sm:text-sm text-[#8D8175] mt-0.5">
                       {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setUploadedFile(null)}
-                  className="p-2 rounded hover:bg-white/10 transition shrink-0"
+                  className="p-2.5 rounded-xl hover:bg-[#FFFDF8] hover:shadow-sm border border-transparent hover:border-[#D8CDBD] transition-all shrink-0 group"
+                  title="Remove file"
                 >
-                  <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-400" />
+                  <Trash2 className="w-5 h-5 text-[#8D8175] group-hover:text-[#8C5A3C]" />
                 </button>
               </div>
 
               <Button
                 onClick={handleUpload}
                 disabled={uploading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-sm sm:text-base"
+                className="w-full bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-2xl py-6 shadow-md transition-all duration-200 ease-out font-medium disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {uploading ? (
-                  <div className="flex items-center gap-2 text-white text-sm sm:text-base">
-                    {" "}
-                    <Spinner className="w-6 h-6 text-white" /> Uploading
+                  <div className="flex items-center justify-center gap-2">
+                    <Spinner className="w-5 h-5 text-[#FFFDF8]" /> 
+                    <span>Uploading...</span>
                   </div>
                 ) : (
-                  "Upload Resume"
+                  "Confirm & Upload Resume"
                 )}
               </Button>
             </div>
           )}
 
-          {/* Cards Row */}
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="p-6 rounded-lg bg-white/5 border border-white/10">
-              <h3 className="text-base sm:text-lg font-bold mb-4 flex items-center gap-2">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 shrink-0" />
+          {/* Info Cards Row - Paper Layer */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="p-6 md:p-8 rounded-2xl bg-[#FBF7EF] border border-[#D8CDBD] shadow-sm">
+              <h3 className="text-base font-medium text-[#2B2118] mb-4 flex items-center gap-2.5">
+                <FileText className="w-5 h-5 text-[#8C5A3C]" />
                 Resume Tips
               </h3>
-              <ul className="space-y-2 text-gray-300 text-xs sm:text-sm">
-                <li>• Keep it to 1-2 pages</li>
-                <li>• Use clear formatting and strong section headers</li>
-                <li>• Highlight impact with metrics</li>
-                <li>• Tailor to each role</li>
+              <ul className="space-y-3 text-[#5C5147] text-sm">
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Keep it to 1-2 pages</li>
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Use clear formatting and sections</li>
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Highlight impact with metrics</li>
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Tailor to your desired role</li>
               </ul>
             </div>
 
-            <div className="p-6 rounded-lg bg-white/5 border border-white/10">
-              <h3 className="text-base sm:text-lg font-bold mb-4 flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 shrink-0" />
+            <div className="p-6 md:p-8 rounded-2xl bg-[#FBF7EF] border border-[#D8CDBD] shadow-sm">
+              <h3 className="text-base font-medium text-[#2B2118] mb-4 flex items-center gap-2.5">
+                <CheckCircle2 className="w-5 h-5 text-[#8C5A3C]" />
                 What We Extract
               </h3>
-              <ul className="space-y-2 text-gray-300 text-xs sm:text-sm">
-                <li>• Skills and tool stack</li>
-                <li>• Project impact highlights</li>
-                <li>• Leadership and collaboration</li>
-                <li>• Technical depth signals</li>
+              <ul className="space-y-3 text-[#5C5147] text-sm">
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Core skills and tool stack</li>
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Project impact highlights</li>
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Leadership capabilities</li>
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Technical depth signals</li>
               </ul>
             </div>
 
-            <div className="p-6 rounded-lg bg-white/5 border border-white/10">
-              <h3 className="text-base sm:text-lg font-bold mb-4 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
+            <div className="p-6 md:p-8 rounded-2xl bg-[#FBF7EF] border border-[#D8CDBD] shadow-sm sm:col-span-2 lg:col-span-1">
+              <h3 className="text-base font-medium text-[#2B2118] mb-4 flex items-center gap-2.5">
+                <AlertCircle className="w-5 h-5 text-[#8C5A3C]" />
                 Common Fixes
               </h3>
-              <ul className="space-y-2 text-gray-300 text-xs sm:text-sm">
-                <li>• Add measurable results</li>
-                <li>• Remove weak filler lines</li>
-                <li>• Tighten summaries</li>
-                <li>• Show recent impact</li>
+              <ul className="space-y-3 text-[#5C5147] text-sm">
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Add measurable results</li>
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Remove weak filler lines</li>
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Tighten your summary</li>
+                <li className="flex items-start gap-2"><span className="text-[#8D8175] mt-0.5">•</span> Emphasize recent impact</li>
               </ul>
             </div>
           </div>
 
-          {/* Previous Uploads */}
-          <div className="p-4 sm:p-6 rounded-lg bg-white/5 border border-white/10">
-            <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6 flex items-center gap-2">
-              <Download className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 shrink-0" />
+          {/* Previous Uploads - Card Layer */}
+          <div className="p-6 md:p-8 rounded-2xl bg-[#FFFDF8] border border-[#D8CDBD] shadow-sm">
+            <h3 className="text-lg font-medium text-[#2B2118] mb-5 sm:mb-6 flex items-center gap-2">
+              <Download className="w-5 h-5 text-[#8C5A3C]" />
               Previous Uploads
             </h3>
 
             {resumeList.length === 0 ? (
-              <p className="text-gray-400 text-sm">
-                No previous uploads found.
-              </p>
+              <div className="p-8 text-center rounded-xl border border-[#D8CDBD] border-dashed bg-[#FBF7EF]">
+                <p className="text-[#8D8175] text-sm">
+                  No previous uploads found. Upload your first resume above.
+                </p>
+              </div>
             ) : (
-              resumeList.map((resume: Resume, index: number) => (
-                <div className="space-y-3" key={index}>
-                  <div className="p-3 sm:p-4 rounded-lg bg-white/5 border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                      <FileText className="w-5 h-5 text-blue-400 shrink-0" />
+              <div className="grid gap-4">
+                {resumeList.map((resume: Resume, index: number) => (
+                  <div 
+                    key={index} 
+                    className="p-4 sm:p-5 rounded-xl bg-[#FBF7EF] border border-[#D8CDBD] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all duration-200 hover:bg-[#FFFDF8] hover:border-[#8C5A3C]/30 hover:shadow-sm group"
+                  >
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-lg bg-[#FFFDF8] border border-[#D8CDBD] flex items-center justify-center shrink-0 shadow-sm transition-colors group-hover:border-[#8C5A3C]/20">
+                        <FileText className="w-5 h-5 text-[#8C5A3C]" />
+                      </div>
                       <div className="min-w-0">
-                        <p className="font-semibold truncate text-sm sm:text-base">
-                          resume_{index + 1}
+                        <p className="font-medium text-[#2B2118] truncate text-sm sm:text-base transition-colors group-hover:text-[#8C5A3C]">
+                          Resume_{index + 1}
                         </p>
-                        <p className="text-xs sm:text-sm text-gray-400">
-                          {new Date(resume.createdAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            },
-                          )}
+                        <p className="text-[10px] md:text-xs text-[#8D8175] mt-0.5 uppercase tracking-widest font-medium">
+                          Uploaded on {new Date(resume.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-2 w-full sm:w-auto">
+                    
+                    <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-xs sm:text-sm flex-1 sm:flex-none"
+                        className="text-xs sm:text-sm flex-1 sm:flex-none border-[#D8CDBD] bg-[#FFFDF8] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-xl shadow-sm"
                         onClick={() => handleFileOpen(resume.fileUrl)}
                       >
                         Open
@@ -330,12 +344,12 @@ export default function ResumePage() {
                         size="sm"
                         variant="outline"
                         disabled={deleting}
-                        className="text-red-400 hover:text-red-300 text-xs sm:text-sm flex-1 sm:flex-none"
+                        className="text-xs sm:text-sm flex-1 sm:flex-none border-[#D8CDBD] bg-[#FFFDF8] text-[#8C5A3C] hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-xl shadow-sm transition-colors"
                         onClick={() => handleDelete(resume.publicId)}
                       >
                         {deleting && resume.publicId === deletingId ? (
-                          <div className="flex items-center gap-2 text-red-400 text-xs sm:text-sm">
-                            <Spinner className="w-4 h-4 text-red-400" /> Deleting
+                          <div className="flex items-center justify-center gap-2">
+                            <Spinner className="w-3.5 h-3.5" /> Deleting...
                           </div>
                         ) : (
                           "Delete"
@@ -343,19 +357,22 @@ export default function ResumePage() {
                       </Button>
                     </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
 
-          {/* CTA */}
-          <div className="p-6 rounded-lg bg-linear-to-r from-blue-600/10 to-cyan-600/10 border border-white/10">
-            <h3 className="text-base sm:text-lg font-bold mb-2">Pro Tip</h3>
-            <p className="text-gray-300 text-sm sm:text-base">
-              Upload your latest resume and run a quick mock interview to see
-              the exact areas to improve.
+          {/* CTA Hint */}
+          <div className="p-6 md:p-8 rounded-2xl bg-[#FBF7EF] border border-[#D8CDBD] relative overflow-hidden shadow-sm">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8C5A3C] rounded-l-2xl"></div>
+            <h3 className="text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] mb-2 pl-2 md:pl-0">
+              Pro Tip
+            </h3>
+            <p className="text-sm md:text-base text-[#5C5147] font-normal leading-relaxed pl-2 md:pl-0">
+              Upload your latest resume and run a quick mock interview to see the exact areas you can improve before the real thing.
             </p>
           </div>
+
         </div>
       </main>
     </div>

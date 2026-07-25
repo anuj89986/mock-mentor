@@ -1,84 +1,52 @@
-import { Card, CardContent } from '@/components/ui/card'
-import {CheckCircle2} from 'lucide-react'
-import Link from 'next/link'
+import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import { ChevronRight, Calendar } from "lucide-react";
 
-interface SessionWithReport{
-  _id: string
-  status: string
-  createdAt: string
+interface SessionWithReport {
+  _id: string;
+  status: string;
+  createdAt: string;
   report?: {
-    overallScore?: number
-    technicalScore?: number
-    communicationScore?: number
-    confidenceScore?: number
-    resumeConsistencyScore?: number
-  }
+    overallScore?: number;
+    technicalScore?: number;
+    communicationScore?: number;
+    confidenceScore?: number;
+    resumeConsistencyScore?: number;
+  };
 }
 
 export function SessionCard({ session }: { session: SessionWithReport }) {
-  const overallScore = session.report?.overallScore ?? 0
-  const sessionDate = new Date(session.createdAt).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-
-  function scoreTone(score: number) {
-    if (score >= 85) return 'text-emerald-400'
-    if (score >= 70) return 'text-blue-400'
-    if (score >= 50) return 'text-amber-400'
-    return 'text-red-400'
-  }
-
-  function scoreBg(score: number) {
-    if (score >= 85) return 'bg-emerald-500/10 border-emerald-500/20'
-    if (score >= 70) return 'bg-blue-500/10 border-blue-500/20'
-    if (score >= 50) return 'bg-amber-500/10 border-amber-500/20'
-    return 'bg-red-500/10 border-red-500/20'
-  }
+  const score = session.report?.overallScore || 0;
 
   return (
-    <Link href={`/session/${session._id}/report`} className="block">
-      <Card className="border-border/70 bg-card/70 shadow-sm backdrop-blur transition-all hover:bg-card/85 cursor-pointer">
-        <CardContent className="pt-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-3 flex-1">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Session Report</p>
-              <div className="flex items-center gap-3">
-                <div className={`rounded-lg border px-4 py-2 ${scoreBg(overallScore)}`}>
-                  <p className={`text-2xl font-semibold ${scoreTone(overallScore)}`}>{overallScore}%</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="font-medium text-foreground">Overall Performance</p>
-                  <p className="text-xs text-muted-foreground">{sessionDate}</p>
-                </div>
+    <Link href={`/session/${session._id}/report`} className="block h-full">
+      <Card className="h-full rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm hover:border-[#8C5A3C]/50 hover:bg-[#FBF7EF] transition-all duration-200 ease-out group cursor-pointer">
+        <CardContent className="p-5 md:p-6 flex items-center justify-between gap-4 h-full">
+          <div className="flex items-center gap-4 min-w-0">
+            {/* Score Bubble */}
+            <div className="flex w-12 h-12 shrink-0 items-center justify-center rounded-full bg-[#FBF7EF] border border-[#D8CDBD] text-[#8C5A3C] group-hover:bg-[#FFFDF8] group-hover:border-[#8C5A3C]/30 transition-all">
+               <span className="text-sm font-medium">{score}%</span>
+            </div>
+            
+            {/* Session Info */}
+            <div className="min-w-0 flex-1">
+              <h3 className="font-medium text-[#2B2118] mb-1 group-hover:text-[#8C5A3C] transition-colors truncate">
+                Session {session._id.slice(-6).toUpperCase()}
+              </h3>
+              <div className="flex items-center gap-1.5 text-xs text-[#8D8175]">
+                <Calendar className="w-3.5 h-3.5" />
+                {new Date(session.createdAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric"
+                })}
               </div>
             </div>
-            <CheckCircle2 className={`size-5 ${scoreTone(overallScore)}`} />
           </div>
-
-          {session.report && (
-            <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded border border-border/50 bg-background/40 p-2">
-                <p className="text-muted-foreground">Technical</p>
-                <p className="font-semibold text-foreground">{session.report.technicalScore}%</p>
-              </div>
-              <div className="rounded border border-border/50 bg-background/40 p-2">
-                <p className="text-muted-foreground">Communication</p>
-                <p className="font-semibold text-foreground">{session.report.communicationScore}%</p>
-              </div>
-              <div className="rounded border border-border/50 bg-background/40 p-2">
-                <p className="text-muted-foreground">Confidence</p>
-                <p className="font-semibold text-foreground">{session.report.confidenceScore}%</p>
-              </div>
-              <div className="rounded border border-border/50 bg-background/40 p-2">
-                <p className="text-muted-foreground">Resume Match</p>
-                <p className="font-semibold text-foreground">{session.report.resumeConsistencyScore}%</p>
-              </div>
-            </div>
-          )}
+          
+          <ChevronRight className="w-5 h-5 text-[#D8CDBD] group-hover:text-[#8C5A3C] transition-colors shrink-0" />
         </CardContent>
       </Card>
     </Link>
-  )
+  );
 }

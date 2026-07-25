@@ -20,7 +20,6 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -51,11 +50,11 @@ type Report = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function scoreHex(score?: number): string {
-  if (typeof score !== 'number') return '#64748b'
-  if (score >= 85) return '#34d399'
-  if (score >= 70) return '#a78bfa'
-  if (score >= 50) return '#fbbf24'
-  return '#f87171'
+  if (typeof score !== 'number') return '#8D8175' // Neutral Taupe
+  if (score >= 85) return '#2A9D8F' // Teal (Excellent)
+  if (score >= 70) return '#8C5A3C' // Terracotta (Good)
+  if (score >= 50) return '#F4A261' // Sandy Gold (Average)
+  return '#E76F51' // Coral (Poor)
 }
 
 function normalizeList(value?: string[]): string[] {
@@ -66,22 +65,22 @@ function normalizeList(value?: string[]): string[] {
 
 function PillList({
   items,
-  tone = 'violet',
+  tone = 'terracotta',
 }: {
   items?: string[]
-  tone?: 'violet' | 'green' | 'amber' | 'red'
+  tone?: 'terracotta' | 'teal' | 'gold' | 'coral'
 }) {
   const colors: Record<string, string> = {
-    violet: 'border-violet-500/25 bg-violet-500/10 text-violet-300',
-    green: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300',
-    amber: 'border-amber-500/25 bg-amber-500/10 text-amber-300',
-    red: 'border-red-500/25 bg-red-500/10 text-red-300',
+    terracotta: 'border-[#8C5A3C]/20 bg-[#8C5A3C]/5 text-[#8C5A3C]',
+    teal: 'border-[#2A9D8F]/20 bg-[#2A9D8F]/5 text-[#2A9D8F]',
+    gold: 'border-[#F4A261]/30 bg-[#F4A261]/10 text-[#D97706]',
+    coral: 'border-[#E76F51]/20 bg-[#E76F51]/5 text-[#E76F51]',
   }
 
   const list = normalizeList(items)
 
   if (!list.length) {
-    return <p className="text-sm text-slate-500 italic">No data available.</p>
+    return <p className="text-sm text-[#8D8175] italic">No data available.</p>
   }
 
   return (
@@ -108,12 +107,10 @@ function ScoreGauge({ score }: { score?: number }) {
   const circumference = 2 * Math.PI * R
   const sweep = circumference * 0.75 // 270° arc
   const filled = sweep * (pct / 100)
-  // const gap = sweep - filled
 
   // The arc starts at 135° (bottom-left) sweeps clockwise 270°
   const cx = 64
   const cy = 64
-  // const startAngle = 135 * (Math.PI / 180)
 
   return (
     <div className="relative flex items-center justify-center">
@@ -124,7 +121,7 @@ function ScoreGauge({ score }: { score?: number }) {
           cy={cy}
           r={R}
           fill="none"
-          stroke="rgba(255,255,255,0.06)"
+          stroke="#D8CDBD"
           strokeWidth={10}
           strokeDasharray={`${sweep} ${circumference - sweep}`}
           strokeDashoffset={circumference * 0.25}
@@ -143,18 +140,18 @@ function ScoreGauge({ score }: { score?: number }) {
           strokeDashoffset={circumference * 0.25}
           strokeLinecap="round"
           transform={`rotate(90 ${cx} ${cy})`}
-          style={{ filter: `drop-shadow(0 0 8px ${color}88)` }}
+          style={{ filter: `drop-shadow(0 2px 4px ${color}40)` }}
         />
       </svg>
       {/* Center label */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center mt-1">
         <span
-          className="text-3xl font-mono font-bold tracking-tight leading-none"
+          className="text-3xl font-mono font-medium tracking-tight leading-none"
           style={{ color }}
         >
           {typeof score === 'number' ? score : '—'}
         </span>
-        <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-0.5">score</span>
+        <span className="text-[9px] uppercase tracking-[0.2em] text-[#8D8175] mt-1 font-medium">score</span>
       </div>
     </div>
   )
@@ -173,20 +170,20 @@ function MetricBar({
   const pct = typeof value === 'number' ? value : 0
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <Icon className="size-3.5 shrink-0" style={{ color }} />
+        <div className="flex items-center gap-2 text-sm text-[#5C5147] font-medium">
+          <Icon className="w-4 h-4 shrink-0" style={{ color }} />
           <span>{label}</span>
         </div>
-        <span className="font-mono text-sm font-semibold" style={{ color }}>
+        <span className="font-mono text-sm font-medium" style={{ color }}>
           {typeof value === 'number' ? `${value}%` : 'N/A'}
         </span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+      <div className="h-2 w-full rounded-full bg-[#F3EBDD] overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${pct}%`, backgroundColor: color, boxShadow: `0 0 6px ${color}66` }}
+          style={{ width: `${pct}%`, backgroundColor: color }}
         />
       </div>
     </div>
@@ -202,9 +199,9 @@ function InfoTile({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-xl border border-white/6 bg-white/3 p-4 space-y-1.5">
-      <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{label}</p>
-      <div className="text-sm font-medium text-slate-100 leading-snug">{children}</div>
+    <div className="rounded-xl border border-[#D8CDBD] bg-[#FBF7EF] p-4 space-y-1.5">
+      <p className="text-[10px] uppercase tracking-[0.22em] text-[#8D8175] font-medium">{label}</p>
+      <div className="text-sm font-medium text-[#2B2118] leading-snug">{children}</div>
     </div>
   )
 }
@@ -259,13 +256,13 @@ export default function ReportPage() {
     return (
       <Shell>
         <div className="flex min-h-screen items-center justify-center px-4">
-          <div className="flex flex-col items-center gap-5 text-center">
-            <div className="relative flex size-16 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10">
-              <Sparkles className="size-6 animate-pulse text-violet-400" />
+          <div className="p-8 md:p-10 rounded-2xl bg-[#FFFDF8] border border-[#D8CDBD] shadow-sm flex flex-col items-center gap-5">
+            <div className="flex w-12 h-12 items-center justify-center rounded-xl bg-[#FBF7EF] border border-[#D8CDBD]">
+              <Sparkles className="w-5 h-5 text-[#8C5A3C] animate-pulse" />
             </div>
-            <div className="space-y-1.5">
-              <p className="text-lg font-semibold text-slate-100">Building your report</p>
-              <p className="text-sm text-slate-500">Loading interview feedback…</p>
+            <div className="text-center space-y-1">
+              <p className="text-lg font-medium text-[#2B2118]">Building your report...</p>
+              <p className="text-sm text-[#8D8175]">Loading interview feedback</p>
             </div>
           </div>
         </div>
@@ -279,27 +276,27 @@ export default function ReportPage() {
     return (
       <Shell>
         <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center px-4 py-10">
-          <Card className="w-full border-white/8 bg-white/3 shadow-2xl backdrop-blur-xl">
+          <Card className="w-full rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
             <CardContent className="flex flex-col items-center gap-5 px-8 py-12 text-center">
-              <div className="flex size-14 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20">
-                <AlertTriangle className="size-6 text-red-400" />
+              <div className="flex w-14 h-14 items-center justify-center rounded-2xl bg-[#E76F51]/10 border border-[#E76F51]/20">
+                <AlertTriangle className="w-6 h-6 text-[#E76F51]" />
               </div>
               <div className="space-y-2">
-                <h1 className="text-xl font-semibold text-slate-100">Report unavailable</h1>
-                <p className="text-sm leading-6 text-slate-500">
+                <h1 className="text-xl font-medium text-[#2B2118]">Report unavailable</h1>
+                <p className="text-sm leading-relaxed text-[#8D8175]">
                   {error || 'No report data was returned for this session.'}
                 </p>
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-                <Button variant="outline" asChild className="border-white/10 bg-white/5 text-slate-300 hover:bg-white/10">
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
+                <Button variant="outline" asChild className="border-[#D8CDBD] bg-[#FFFDF8] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-xl shadow-sm">
                   <Link href={`/session/${sessionId}`}>
-                    <ArrowLeft className="size-4" />
+                    <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Session
                   </Link>
                 </Button>
                 <Button
                   onClick={() => router.push('/dashboard')}
-                  className="bg-violet-600 hover:bg-violet-700 text-white"
+                  className="bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-xl shadow-sm transition-all"
                 >
                   Go to Dashboard
                 </Button>
@@ -321,53 +318,53 @@ export default function ReportPage() {
 
   return (
     <Shell>
-      <main className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+      <main className="mx-auto w-full max-w-5xl px-5 md:px-12 py-8 md:py-12">
 
         {/* ── Header ── */}
-        <header className="mb-12 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+        <header className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-md border border-violet-500/20 bg-violet-500/8 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-violet-400">
-              <Sparkles className="size-3" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] px-3 py-1 text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] shadow-sm">
+              <Sparkles className="w-3.5 h-3.5" />
               Interview Report
             </div>
 
-            <h1 className="text-4xl font-bold tracking-tight text-slate-50 sm:text-5xl">
+            <h1 className="text-3xl font-medium tracking-tight text-[#2B2118] sm:text-4xl">
               Session Report
             </h1>
 
             <div className="flex flex-wrap items-center gap-2.5 text-sm">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-white/8 bg-white/4 px-2.5 py-1 text-xs text-slate-400">
-                <Clock3 className="size-3 text-violet-400" />
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-[#D8CDBD] bg-[#FFFDF8] px-2.5 py-1 text-xs font-medium text-[#8D8175] shadow-sm">
+                <Clock3 className="w-3.5 h-3.5 text-[#8C5A3C]" />
                 {reportDate}
               </span>
             </div>
           </div>
 
-          <Button asChild className="shrink-0 bg-violet-600 hover:bg-violet-700 text-white">
+          <Button asChild className="shrink-0 bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-2xl px-6 py-5 shadow-md transition-all duration-200 ease-out font-medium">
             <Link href="/dashboard">
               Dashboard
-              <ChevronRight className="size-4" />
+              <ChevronRight className="w-4 h-4 ml-1" />
             </Link>
           </Button>
         </header>
 
         {/* ── Score hero ── */}
         <section className="mb-8">
-          <Card className="border-white/8 bg-white/3 shadow-2xl backdrop-blur-xl overflow-hidden">
+          <Card className="rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm overflow-hidden">
             <CardContent className="p-0">
-              <div className="grid divide-y divide-white/6 lg:grid-cols-[280px_1fr] lg:divide-x lg:divide-y-0">
+              <div className="grid divide-y divide-[#D8CDBD] lg:grid-cols-[280px_1fr] lg:divide-x lg:divide-y-0">
 
                 {/* Gauge column */}
-                <div className="flex flex-col items-center justify-center gap-3 p-8 bg-linear-to-br from-violet-950/40 to-transparent">
+                <div className="flex flex-col items-center justify-center gap-4 p-8 bg-[#FBF7EF]">
                   <ScoreGauge score={overallScore} />
                   <div className="text-center space-y-1">
-                    <p className="text-sm font-semibold text-slate-200">Overall Score</p>
-                    <p className="text-xs text-slate-500">Composite of all dimensions</p>
+                    <p className="text-sm font-medium text-[#2B2118]">Overall Score</p>
+                    <p className="text-xs text-[#8D8175]">Composite of all dimensions</p>
                   </div>
                 </div>
 
                 {/* Metrics column */}
-                <div className="grid gap-6 p-8 sm:grid-cols-2">
+                <div className="grid gap-6 md:gap-8 p-6 md:p-8 sm:grid-cols-2">
                   <MetricBar label="Technical" value={technicalScore} icon={Brain} />
                   <MetricBar label="Communication" value={communicationScore} icon={MessageSquareText} />
                   <MetricBar label="Confidence" value={confidenceScore} icon={Users} />
@@ -380,52 +377,50 @@ export default function ReportPage() {
 
         {/* ── Summary ── */}
         <section className="mb-8">
-
-          {/* Summary */}
-          <Card className="border-white/8 bg-white/3 shadow-xl backdrop-blur-xl">
-            <CardHeader className="border-b border-white/6 pb-4">
-              <CardTitle className="text-base font-semibold text-slate-100">Summary</CardTitle>
-              <CardDescription className="text-slate-500">
+          <Card className="rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
+            <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-6 md:px-8">
+              <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">Summary</CardTitle>
+              <CardDescription className="text-sm text-[#8D8175] mt-1">
                 High-level overview of the session outcome.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 pt-5">
-              <p className="text-sm leading-7 text-slate-300">
+            <CardContent className="space-y-8 pt-6 px-6 md:px-8 pb-8">
+              <p className="text-sm md:text-base leading-relaxed text-[#5C5147]">
                 {report.summary || 'No summary was generated for this report.'}
               </p>
 
-              <Separator className="bg-white/6" />
+              <Separator className="bg-[#D8CDBD]" />
 
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
-                    <CheckCircle2 className="size-3.5 text-emerald-400" />
+              <div className="grid gap-8 sm:grid-cols-2">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-[#8D8175]">
+                    <CheckCircle2 className="w-4 h-4 text-[#2A9D8F]" />
                     Strengths
                   </div>
-                  <PillList items={strengths} tone="green" />
+                  <PillList items={strengths} tone="teal" />
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
-                    <AlertTriangle className="size-3.5 text-amber-400" />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-[#8D8175]">
+                    <AlertTriangle className="w-4 h-4 text-[#E76F51]" />
                     Weaknesses
                   </div>
-                  <PillList items={weaknesses} tone="amber" />
+                  <PillList items={weaknesses} tone="coral" />
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
-                  <TrendingUp className="size-3.5 text-violet-400" />
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-[#8D8175]">
+                  <TrendingUp className="w-4 h-4 text-[#8C5A3C]" />
                   Areas to Improve
                 </div>
-                <PillList items={improvements} tone="violet" />
+                <PillList items={improvements} tone="terracotta" />
               </div>
             </CardContent>
           </Card>
         </section>
       </main>
-      </Shell>
+    </Shell>
   )
 }
 
@@ -433,13 +428,7 @@ export default function ReportPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-[#080C1A] text-white">
-      {/* Ambient glows */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-130 w-130 rounded-full bg-violet-700/12 blur-[120px]" />
-        <div className="absolute top-1/2 -right-40 h-96 w-96 rounded-full bg-indigo-600/8 blur-[100px]" />
-        <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-violet-800/10 blur-[90px]" />
-      </div>
+    <div className="flex flex-col min-h-screen w-full bg-[#F3EBDD] text-[#5C5147] font-sans overflow-auto selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
       {children}
     </div>
   )

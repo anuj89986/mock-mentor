@@ -26,17 +26,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex dark">
-        <ClientProvider>
-          <Navbar />
+  <html
+    lang="en"
+    className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+  >
+    {/* Removed 'dark' class if you are transitioning to the light earthy theme, but kept flex */}
+    <body className="min-h-full flex bg-[#F3EBDD]">
+      <ClientProvider>
+        <Navbar />
+        
+        {/* Wrap children here to add bottom padding on mobile (pb-20) and remove it on desktop (md:pb-0) */}
+        <main className="flex-1 w-full pb-20 md:pb-0">
           {children}
-          <Toaster />
-        </ClientProvider>
-      </body>
-    </html>
-  );
+        </main>
+        
+        <Toaster />
+      </ClientProvider>
+    </body>
+  </html>
+);
 }

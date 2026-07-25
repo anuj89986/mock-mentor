@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, Brain, Zap, Users, CheckCircle, Star} from 'lucide-react';
+import { ArrowRight, Zap, Users, CheckCircle2, Star, FileText,Brain} from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -10,115 +10,131 @@ import { useEffect } from 'react';
 export default function Home() {
   const { data: session } = useSession();
   const router = useRouter();
+
   useEffect(() => {
     if (session) {
       router.push('/dashboard');
     }
-  }, [session]);
+  }, [session, router]);
+
   return ( 
-    <div className="flex flex-col min-h-screen bg-black text-white w-full">
+    <div className="flex flex-col min-h-screen bg-[#F3EBDD] text-[#5C5147] font-sans selection:bg-[#8C5A3C] selection:text-[#FFFDF8] overflow-x-hidden w-full">
+      
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="w-8 h-8 text-blue-500" />
-            <span className="text-2xl font-bold">Mock Mentor</span>
+      <nav className="fixed top-0 w-full z-50 bg-[#FBF7EF]/90 backdrop-blur-xl border-b border-[#D8CDBD] shadow-sm transition-all">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#8C5A3C] flex items-center justify-center shadow-sm shrink-0">
+              <Brain className="w-6 h-6 text-[#FFFDF8]" />
+            </div>
+            <span className="text-xl md:text-2xl font-medium tracking-tight text-[#2B2118]">
+              Mock Mentor
+            </span>
           </div>
-          <div className="flex items-center gap-4">
-              <>
-                <Button variant="ghost" asChild>
-                  <Link href="/auth/signin">Sign In</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/auth/register">Get Started</Link>
-                </Button>
-              </>
+          <div className="flex items-center gap-3 md:gap-5">
+            <Button 
+              variant="ghost" 
+              asChild
+              className="text-[#5C5147] hover:bg-[#F3EBDD] hover:text-[#2B2118] font-medium hidden sm:flex"
+            >
+              <Link href="/auth/signin">Log in</Link>
+            </Button>
+            <Button asChild className="bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-xl px-5 shadow-sm transition-all font-medium">
+              <Link href="/auth/register">Get Started</Link>
+            </Button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="mb-6 inline-block">
-            <span className="px-4 py-2 rounded-full bg-blue-500/20 text-blue-400 text-sm font-semibold border border-blue-500/30">
-              🚀 AI-Powered Mock Interviews
+      <section className="relative pt-40 pb-24 md:pt-48 md:pb-32 px-5 sm:px-6 lg:px-8 flex items-center justify-center overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-125 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-[#8C5A3C]/10 via-transparent to-transparent pointer-events-none -z-10" />
+        
+        <div className="max-w-4xl mx-auto text-center z-10 w-full">
+          <div className="mb-8 inline-block">
+            <span className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFFDF8] text-[#8C5A3C] text-[11px] md:text-xs font-medium uppercase tracking-widest border border-[#D8CDBD] shadow-sm">
+              AI-Powered Interview Prep
             </span>
           </div>
           
-          <h1 className="text-5xl sm:text-7xl font-bold mb-6 leading-tight">
-            Master Your Interview Skills with{' '}
-            <span className="bg-linear-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              Mock Mentor
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium mb-6 leading-[1.1] text-[#2B2118] tracking-tight text-balance">
+            Master your interview skills with{' '}
+            <span className="text-[#8C5A3C] italic font-serif pr-2">
+              confidence.
             </span>
           </h1>
           
-          <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            Practice with AI-driven mock interviews tailored to your resume. Get real-time feedback, 
-            improve your skills, and ace your next interview with confidence.
+          <p className="text-base sm:text-lg md:text-xl text-[#8D8175] mb-10 max-w-2xl mx-auto leading-relaxed text-balance">
+            Upload your resume and practice with tailored, AI-driven mock interviews. Get real-time feedback, refine your narrative, and walk into your next interview fully prepared.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild className="bg-blue-600 hover:bg-blue-700">
-              <Link href="/auth/register">
-                Start Free Trial
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full px-2 sm:px-0">
+            <Button size="lg" asChild className="w-full sm:w-auto bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-xl h-14 px-8 shadow-md transition-all font-medium text-base">
+              <Link href="/auth/signin">
+                Start Practicing Free
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
-            </Button>
-            <Button size="lg" variant="outline">
-              Watch Demo
             </Button>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white/5 border-y border-white/10">
+      <section className="py-20 md:py-24 px-5 sm:px-6 lg:px-8 bg-[#FFFDF8] border-y border-[#D8CDBD]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16">
-            Why Choose Mock Mentor?
-          </h2>
+          <div className="text-center mb-12 md:mb-16 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-medium text-[#2B2118] tracking-tight mb-4">
+              Everything you need to succeed
+            </h2>
+            <p className="text-[#8D8175] text-base md:text-lg">
+              Our platform provides a comprehensive environment to test, analyze, and perfect your professional communication.
+            </p>
+          </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">
             {[
               {
                 icon: Brain,
-                title: 'AI-Powered Interviews',
-                description: 'Get intelligent mock interviews that adapt to your skill level and experience.',
+                title: 'Adaptive AI Mentor',
+                description: 'Experience dynamic conversations. The AI adapts follow-up questions based on your real-time responses and experience level.',
+              },
+              {
+                icon: FileText,
+                title: 'Resume-Driven',
+                description: 'Upload your CV to generate highly personalized questions that target your specific projects, skills, and industry.',
               },
               {
                 icon: Zap,
-                title: 'Real-Time Feedback',
-                description: 'Receive instant analysis of your responses with actionable improvement suggestions.',
+                title: 'Instant Analysis',
+                description: 'Receive immediate, actionable breakdowns of your communication clarity, technical accuracy, and confidence markers.',
               },
               {
                 icon: Users,
-                title: 'Industry Experts',
-                description: 'Learn from curated best practices and interview tips from top professionals.',
+                title: 'Behavioral & Technical',
+                description: 'Whether you need to practice coding concepts or leadership scenarios, our mentor switches contexts seamlessly.',
               },
               {
-                icon: BookOpen,
-                title: 'Resume Analysis',
-                description: 'Upload your resume and get tailored questions based on your background.',
-              },
-              {
-                icon: CheckCircle,
-                title: 'Track Progress',
-                description: 'Monitor your improvements across multiple practice sessions and metrics.',
+                icon: CheckCircle2,
+                title: 'Progress Tracking',
+                description: 'Watch your scores improve over time. Our analytics dashboard highlights your growing strengths and lingering blind spots.',
               },
               {
                 icon: Star,
-                title: 'Interview Preparation',
-                description: 'Cover all major topics: technical, behavioral, and role-specific questions.',
+                title: 'Industry Standards',
+                description: 'Trained on modern hiring frameworks, ensuring you practice against the exact standards top companies use today.',
               },
             ].map((feature, idx) => (
               <div
                 key={idx}
-                className="p-6 rounded-lg bg-white/5 border border-white/10 hover:border-blue-500/50 hover:bg-white/10 transition-all duration-300"
+                className="p-6 md:p-8 rounded-2xl bg-[#FBF7EF] border border-[#D8CDBD] hover:border-[#8C5A3C]/40 hover:-translate-y-1 transition-all duration-300 shadow-sm group"
               >
-                <feature.icon className="w-10 h-10 text-blue-400 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-400">{feature.description}</p>
+                <div className="w-12 h-12 rounded-xl bg-[#FFFDF8] border border-[#D8CDBD] flex items-center justify-center mb-5 md:mb-6 group-hover:border-[#8C5A3C]/30 transition-colors">
+                  <feature.icon className="w-6 h-6 text-[#8C5A3C]" />
+                </div>
+                <h3 className="text-lg font-medium text-[#2B2118] mb-2 md:mb-3">{feature.title}</h3>
+                <p className="text-[#8D8175] leading-relaxed text-sm">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -126,113 +142,104 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      <section className="py-24 px-5 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16">How It Works</h2>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-medium text-[#2B2118] tracking-tight">How It Works</h2>
+          </div>
           
-          <div className="space-y-8">
-            {[
-              {
-                step: '01',
-                title: 'Upload Your Resume',
-                description: 'Share your resume and let our AI understand your background and experience.',
-              },
-              {
-                step: '02',
-                title: 'Start Mock Interview',
-                description: 'Choose a role or interview type and begin your personalized mock session.',
-              },
-              {
-                step: '03',
-                title: 'Get Real-Time Feedback',
-                description: 'Receive instant analysis on communication, technical accuracy, and confidence.',
-              },
-              {
-                step: '04',
-                title: 'Improve & Master',
-                description: 'Track your progress, retake interviews, and build confidence for the real deal.',
-              },
-            ].map((item, idx) => (
-              <div key={idx} className="flex gap-6 items-start">
-                <div className="w-12 h-12 rounded-full bg-blue-500/20 border border-blue-500 flex items-center justify-center shrink-0">
-                  <span className="text-blue-400 font-bold">{item.step}</span>
+          <div className="grid md:grid-cols-2 gap-12 lg:gap-20">
+            <div className="space-y-10">
+              {[
+                {
+                  step: '01',
+                  title: 'Upload Your Resume',
+                  description: 'Share your background securely. Our system parses your experience to create a baseline for your personalized interview.',
+                },
+                {
+                  step: '02',
+                  title: 'Select Your Focus',
+                  description: 'Choose between technical deep-dives, behavioral scenarios, or a mixed session tailored to your upcoming opportunities.',
+                },
+                {
+                  step: '03',
+                  title: 'Converse Naturally',
+                  description: 'Engage in a voice or text-based dialogue. Answer naturally, just as you would with a human hiring manager.',
+                },
+                {
+                  step: '04',
+                  title: 'Review & Refine',
+                  description: 'Get a comprehensive post-interview report detailing your scores, strengths, and specific areas for improvement.',
+                },
+              ].map((item, idx) => (
+                <div key={idx} className="flex gap-6 items-start group">
+                  <div className="w-12 h-12 rounded-full bg-[#FFFDF8] border border-[#D8CDBD] flex items-center justify-center shrink-0 shadow-sm group-hover:border-[#8C5A3C] transition-colors">
+                    <span className="text-[#8C5A3C] font-mono font-medium text-sm">{item.step}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-medium text-[#2B2118] mb-2">{item.title}</h3>
+                    <p className="text-[#8D8175] leading-relaxed">{item.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                  <p className="text-gray-400">{item.description}</p>
+              ))}
+            </div>
+            
+            {/* Visual Placeholder for How it Works */}
+            <div className="hidden md:flex items-center justify-center bg-[#FBF7EF] rounded-3xl border border-[#D8CDBD] shadow-sm relative overflow-hidden min-h-100">
+              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-[#8C5A3C] to-transparent"></div>
+              <div className="w-4/5 h-4/5 bg-[#FFFDF8] rounded-2xl border border-[#D8CDBD] shadow-md p-6 flex flex-col gap-4 z-10 relative transform rotate-2">
+                <div className="w-1/3 h-4 bg-[#F3EBDD] rounded-full"></div>
+                <div className="w-3/4 h-3 bg-[#F3EBDD] rounded-full"></div>
+                <div className="w-5/6 h-3 bg-[#F3EBDD] rounded-full"></div>
+                <div className="mt-auto w-full h-12 bg-[#FBF7EF] rounded-xl border border-[#D8CDBD] flex items-center px-4">
+                  <div className="w-2 h-2 rounded-full bg-[#8C5A3C] animate-pulse"></div>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-linear-to-r from-blue-600/10 to-cyan-600/10 border-y border-white/10">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Ace Your Next Interview?</h2>
-          <p className="text-lg text-gray-400 mb-8">
-            Join hundreds of professionals who've mastered their interview skills with Mock Mentor.
+      <section className="py-20 md:py-24 px-5 sm:px-6 lg:px-8 bg-[#FBF7EF] border-y border-[#D8CDBD] relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-[#8C5A3C]" />
+        
+        <div className="max-w-2xl mx-auto text-center relative z-10 w-full">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#2B2118] tracking-tight mb-6 text-balance">
+            Ready to ace your next interview?
+          </h2>
+          <p className="text-base md:text-lg text-[#8D8175] mb-10 leading-relaxed text-balance">
+            Join professionals who have elevated their careers by preparing with Mock Mentor. Start your first session today.
           </p>
-          <Button size="lg" asChild className="bg-blue-600 hover:bg-blue-700">
+          <Button size="lg" asChild className="w-full sm:w-auto bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-xl h-14 px-10 shadow-md transition-all font-medium text-base">
             <Link href="/auth/register">
-              Get Started Free
-              <ArrowRight className="ml-2 w-4 h-4" />
+              Create Your Free Account
             </Link>
           </Button>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Brain className="w-6 h-6 text-blue-400" />
-                <span className="font-bold">Mock Mentor</span>
-              </div>
-              <p className="text-sm text-gray-400">Master your interview skills with AI.</p>
+      {/* Minimal Footer */}
+      <footer className="bg-[#FFFDF8] py-8 md:py-10 border-t border-[#D8CDBD] px-5 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-[#8C5A3C] flex items-center justify-center shrink-0">
+              <Brain className="w-4 h-4 text-[#FFFDF8]" />
             </div>
-            {[
-              {
-                title: 'Product',
-                links: ['Features', 'Pricing', 'Blog', 'Updates'],
-              },
-              {
-                title: 'Company',
-                links: ['About', 'Careers', 'Contact', 'Press'],
-              },
-              {
-                title: 'Legal',
-                links: ['Privacy', 'Terms', 'Security', 'Cookies'],
-              },
-            ].map((col, idx) => (
-              <div key={idx}>
-                <h4 className="font-semibold mb-4">{col.title}</h4>
-                <ul className="space-y-2">
-                  {col.links.map((link) => (
-                    <li key={link}>
-                      <a href="#" className="text-sm text-gray-400 hover:text-white transition">
-                        {link}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <span className="font-medium text-[#2B2118] text-lg tracking-tight">Mock Mentor</span>
           </div>
           
-          <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between">
-            <p className="text-sm text-gray-400">© 2026 Mock Mentor. All rights reserved.</p>
-            <div className="flex gap-4 mt-4 sm:mt-0">
-              {['Twitter', 'LinkedIn', 'GitHub'].map((social) => (
-                <a key={social} href="#" className="text-sm text-gray-400 hover:text-white transition">
-                  {social}
-                </a>
-              ))}
-            </div>
+          <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8">
+            {['Privacy Policy', 'Terms of Service', 'Contact Us'].map((link) => (
+              <a key={link} href="#" className="text-sm text-[#8D8175] hover:text-[#8C5A3C] transition-colors">
+                {link}
+              </a>
+            ))}
           </div>
+
+          <p className="text-xs text-[#8D8175]">
+            © {new Date().getFullYear()} Mock Mentor. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>

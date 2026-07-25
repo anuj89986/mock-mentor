@@ -18,7 +18,6 @@ import {
   MessageSquareText,
   Users,
   Calendar,
-  CheckCircle2,
 } from "lucide-react";
 import {
   LineChart,
@@ -59,7 +58,14 @@ type ScoreHistory = {
   confidence: number;
 };
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+// Colorful yet elegant palette that contrasts well against the light cream background
+const COLORS = [
+  "#2A9D8F", // Teal (Technical)
+  "#E76F51", // Coral (Communication)
+  "#6D597A", // Muted Purple (Confidence)
+  "#F4A261", // Sandy Gold
+  "#8C5A3C", // Terracotta (Brand)
+];
 
 export default function ProgressPage() {
   const [sessions, setSessions] = useState<SessionWithReport[]>([]);
@@ -180,84 +186,65 @@ export default function ProgressPage() {
 
   if (loading) {
     return (
-      <div className="relative min-h-screen overflow-hidden w-full bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))] text-white">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
-          <div className="absolute -bottom-28 -left-20 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
-        </div>
-        <div className="relative flex min-h-screen items-center justify-center px-4">
-          <Card className="border-border/70 bg-card/80 shadow-[0_24px_70px_-32px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-            <CardContent className="flex flex-col items-center gap-4 px-8 py-10">
-              <div className="flex size-12 items-center justify-center rounded-full bg-blue-500/10">
-                <TrendingUp className="size-5 animate-pulse text-blue-400" />
-              </div>
-              <p className="text-lg font-semibold text-foreground">
-                Loading your progress
-              </p>
-            </CardContent>
-          </Card>
+      <div className="flex min-h-screen items-center justify-center bg-[#F3EBDD] text-[#5C5147] font-sans selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+        <div className="p-8 md:p-10 rounded-2xl bg-[#FFFDF8] border border-[#D8CDBD] shadow-sm flex flex-col items-center gap-5">
+          <div className="flex w-12 h-12 items-center justify-center rounded-xl bg-[#FBF7EF] border border-[#D8CDBD]">
+            <TrendingUp className="w-5 h-5 text-[#8C5A3C] animate-pulse" />
+          </div>
+          <p className="text-lg font-medium text-[#2B2118]">
+            Loading your progress...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))] text-white">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="absolute -bottom-28 -left-20 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
-      </div>
-
-      <main className="relative mx-auto min-h-screen w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <header className="mb-10 space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground shadow-sm backdrop-blur">
-            <TrendingUp className="size-3.5 text-blue-400" />
+    <div className="flex flex-col min-h-screen w-full bg-[#F3EBDD] text-[#5C5147] font-sans overflow-auto selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+      
+      {/* Top Header - Paper Layer */}
+      <div className="sticky top-0 z-10 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] pt-6 pb-4 md:pt-8 transition-all duration-200 shadow-sm">
+        <div className="px-5 md:px-12 max-w-7xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] shadow-sm">
+            <TrendingUp className="w-3.5 h-3.5" />
             Progress & Analytics
           </div>
+          <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-[#2B2118] truncate mb-1 md:mb-2">
+            Your interview journey
+          </h1>
+          <p className="text-[#8D8175] text-xs md:text-sm font-normal max-w-2xl truncate">
+            Track your performance, identify patterns, and see how you're improving over time.
+          </p>
+        </div>
+      </div>
 
-          <div className="space-y-3">
-            <h1 className="font-heading text-4xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
-              Your interview journey
-            </h1>
-            <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-              Track your performance across multiple sessions, identify
-              patterns, and see how you're improving over time.
-            </p>
-          </div>
-        </header>
-
+      <main className="flex-1 w-full max-w-7xl mx-auto px-5 md:px-12 py-8 md:py-10">
         {error && (
-          <Card className="mb-8 border-red-500/30 bg-red-500/10">
-            <CardContent className="pt-6">
-              <p className="text-sm text-red-300">{error}</p>
-            </CardContent>
-          </Card>
+          <div className="mb-8 p-5 rounded-2xl border border-[#D8CDBD] bg-[#FBF7EF] shadow-sm">
+            <p className="text-sm text-[#8C5A3C] font-medium">{error}</p>
+          </div>
         )}
 
         {sessions.length === 0 ? (
-          <Card className="border-border/70 bg-card/80 shadow-[0_24px_70px_-32px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-            <CardContent className="flex flex-col items-center gap-4 px-8 py-16 text-center">
-              <div className="flex size-14 items-center justify-center rounded-2xl bg-blue-500/10">
-                <Calendar className="size-6 text-blue-400" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold text-foreground">
-                  No sessions yet
-                </h3>
-                <p className="max-w-sm text-sm text-muted-foreground">
-                  Start your first interview session to begin tracking your
-                  progress and performance.
-                </p>
-              </div>
-              <Button asChild className="mt-4 bg-blue-600 hover:bg-blue-700">
-                <Link href="/interview">Start an Interview</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="p-10 md:p-16 rounded-2xl bg-[#FFFDF8] border border-[#D8CDBD] shadow-sm text-center flex flex-col items-center">
+            <div className="flex w-16 h-16 items-center justify-center rounded-xl bg-[#FBF7EF] border border-[#D8CDBD] mb-6 text-[#8C5A3C]">
+              <Calendar className="w-7 h-7" />
+            </div>
+            <h3 className="text-xl md:text-2xl font-medium text-[#2B2118] mb-3">
+              No sessions yet
+            </h3>
+            <p className="text-[#8D8175] max-w-md mb-8 text-sm md:text-base font-normal">
+              Start your first interview session to begin tracking your
+              progress and performance.
+            </p>
+            <Button asChild className="bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-2xl px-8 py-6 shadow-md transition-all duration-200 ease-out font-medium">
+              <Link href="/interview">Start an Interview</Link>
+            </Button>
+          </div>
         ) : (
           <>
             {/* Summary Stats */}
-            <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <section className="mb-10 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
               <StatCard
                 label="Average Overall"
                 value={stats.avgOverall}
@@ -290,67 +277,82 @@ export default function ProgressPage() {
             </section>
 
             {/* Charts */}
-            <section className="mb-8 grid gap-6 lg:grid-cols-3">
+            <section className="mb-10 grid gap-6 lg:grid-cols-3">
               {/* Score Trend Chart */}
-              <Card className="col-span-2 border-border/70 bg-card/80 shadow-[0_24px_70px_-32px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-                <CardHeader className="border-b border-border/60 pb-5">
-                  <CardTitle className="text-xl">Score Trends</CardTitle>
-                  <CardDescription>
+              <Card className="col-span-2 rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
+                <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-6 md:px-8">
+                  <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">Score Trends</CardTitle>
+                  <CardDescription className="text-sm text-[#8D8175] mt-1">
                     Your performance across all metrics over time.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="pt-8 pb-6 px-4 md:px-8">
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={scoreHistory}>
                       <CartesianGrid
                         strokeDasharray="3 3"
-                        stroke="rgba(255,255,255,0.1)"
+                        stroke="#D8CDBD"
+                        vertical={false}
                       />
                       <XAxis
                         dataKey="number"
-                        stroke="rgba(255,255,255,0.5)"
-                        style={{ fontSize: "12px" }}
+                        stroke="#8D8175"
+                        tick={{ fill: '#8D8175', fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                        dy={10}
                       />
                       <YAxis
-                        stroke="rgba(255,255,255,0.5)"
-                        style={{ fontSize: "12px" }}
+                        stroke="#8D8175"
+                        tick={{ fill: '#8D8175', fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                        dx={-10}
                       />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "rgba(0,0,0,0.8)",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          borderRadius: "8px",
+                          backgroundColor: "#FBF7EF",
+                          border: "1px solid #D8CDBD",
+                          borderRadius: "12px",
+                          color: "#2B2118",
+                          boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.05)"
                         }}
+                        itemStyle={{ fontSize: "14px", fontWeight: 500 }}
                         formatter={(value) => `${value}%`}
                       />
-                      <Legend />
+                      <Legend wrapperStyle={{ paddingTop: "20px" }} />
                       <Line
                         type="monotone"
                         dataKey="overall"
-                        stroke="#3b82f6"
+                        stroke="#8C5A3C"
                         name="Overall"
-                        strokeWidth={2}
+                        strokeWidth={3}
+                        dot={{ r: 4, strokeWidth: 2 }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
                       />
                       <Line
                         type="monotone"
                         dataKey="technical"
-                        stroke="#10b981"
+                        stroke="#2A9D8F"
                         name="Technical"
                         strokeWidth={2}
+                        dot={{ r: 3 }}
                       />
                       <Line
                         type="monotone"
                         dataKey="communication"
-                        stroke="#f59e0b"
+                        stroke="#E76F51"
                         name="Communication"
                         strokeWidth={2}
+                        dot={{ r: 3 }}
                       />
                       <Line
                         type="monotone"
                         dataKey="confidence"
-                        stroke="#8b5cf6"
+                        stroke="#6D597A"
                         name="Confidence"
                         strokeWidth={2}
+                        dot={{ r: 3 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -358,14 +360,14 @@ export default function ProgressPage() {
               </Card>
 
               {/* Category Breakdown */}
-              <Card className="border-border/70 bg-card/80 shadow-[0_24px_70px_-32px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-                <CardHeader className="border-b border-border/60 pb-5">
-                  <CardTitle className="text-xl">Category Breakdown</CardTitle>
-                  <CardDescription>
+              <Card className="rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
+                <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-6 md:px-8">
+                  <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">Category Breakdown</CardTitle>
+                  <CardDescription className="text-sm text-[#8D8175] mt-1">
                     Average performance by category.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="pt-8 pb-6 px-4">
                   {categoryBreakdown.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
@@ -375,9 +377,11 @@ export default function ProgressPage() {
                           cy="50%"
                           labelLine={false}
                           label={({ name, value }) => `${name}: ${value}%`}
-                          outerRadius={80}
-                          fill="#8884d8"
+                          outerRadius={90}
+                          innerRadius={60}
                           dataKey="value"
+                          stroke="#FFFDF8"
+                          strokeWidth={2}
                         >
                           {categoryBreakdown.map((entry, index) => (
                             <Cell
@@ -386,56 +390,84 @@ export default function ProgressPage() {
                             />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value) => `${value}%`} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#FBF7EF",
+                            border: "1px solid #D8CDBD",
+                            borderRadius: "12px",
+                            color: "#2B2118",
+                            boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.05)"
+                          }}
+                          formatter={(value) => `${value}%`}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
-                    <p className="text-center text-sm text-muted-foreground">
-                      No data available
-                    </p>
+                    <div className="flex h-75 items-center justify-center">
+                      <p className="text-center text-sm text-[#8D8175]">
+                        No data available
+                      </p>
+                    </div>
                   )}
                 </CardContent>
               </Card>
             </section>
 
             {/* Score Distribution */}
-            <section className="mb-8">
-              <Card className="border-border/70 bg-card/80 shadow-[0_24px_70px_-32px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-                <CardHeader className="border-b border-border/60 pb-5">
-                  <CardTitle className="text-xl">Score Distribution</CardTitle>
-                  <CardDescription>
+            <section className="mb-12">
+              <Card className="rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
+                <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-6 md:px-8">
+                  <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">Score Distribution</CardTitle>
+                  <CardDescription className="text-sm text-[#8D8175] mt-1">
                     Comparison of average scores across all metrics.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="pt-8 pb-6 px-4 md:px-8">
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={categoryBreakdown}>
+                    <BarChart data={categoryBreakdown} margin={{ top: 20 }}>
                       <CartesianGrid
                         strokeDasharray="3 3"
-                        stroke="rgba(255,255,255,0.1)"
+                        stroke="#D8CDBD"
+                        vertical={false}
                       />
                       <XAxis
                         dataKey="name"
-                        stroke="rgba(255,255,255,0.5)"
-                        style={{ fontSize: "12px" }}
+                        stroke="#8D8175"
+                        tick={{ fill: '#8D8175', fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                        dy={10}
                       />
                       <YAxis
-                        stroke="rgba(255,255,255,0.5)"
-                        style={{ fontSize: "12px" }}
+                        stroke="#8D8175"
+                        tick={{ fill: '#8D8175', fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                        dx={-10}
                       />
                       <Tooltip
+                        cursor={{ fill: '#FBF7EF' }}
                         contentStyle={{
-                          backgroundColor: "rgba(0,0,0,0.8)",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          borderRadius: "8px",
+                          backgroundColor: "#FBF7EF",
+                          border: "1px solid #D8CDBD",
+                          borderRadius: "12px",
+                          color: "#2B2118",
+                          boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.05)"
                         }}
                         formatter={(value) => `${value}%`}
                       />
                       <Bar
                         dataKey="value"
-                        fill="#3b82f6"
-                        radius={[8, 8, 0, 0]}
-                      />
+                        radius={[6, 6, 0, 0]}
+                        barSize={60}
+                      >
+                        {categoryBreakdown.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -443,18 +475,17 @@ export default function ProgressPage() {
             </section>
 
             {/* Recent Sessions */}
-            <section className="space-y-4">
+            <section className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-foreground">
+                <h2 className="text-lg md:text-xl font-medium text-[#2B2118] mb-1">
                   Recent Sessions
                 </h2>
-                <p className="text-sm text-muted-foreground">
-                  Click on any session to view detailed feedback and
-                  recommendations.
+                <p className="text-sm text-[#8D8175]">
+                  Click on any session to view detailed feedback and recommendations.
                 </p>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:gap-6 md:grid-cols-2">
                 {sessions
                   .sort(
                     (a, b) =>
