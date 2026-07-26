@@ -405,38 +405,49 @@ int main() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#F3EBDD] text-[#5C5147] font-sans overflow-auto selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+    // Changed: min-h-[100dvh] for native body scrolling, removed overflow-auto
+    <div className="min-h-dvh flex flex-col w-full bg-[#F3EBDD] text-[#5C5147] font-sans selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
       
-      {/* Top Header - Paper Layer */}
-      <div className="sticky top-0 z-10 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] pt-6 pb-4 md:pt-8 transition-all duration-200 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 md:px-12 max-w-6xl mx-auto gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] shadow-sm">
-              <Sparkles className="w-3.5 h-3.5" />
-              Voice interview session
-            </div>
-            <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-[#2B2118] truncate mb-1 md:mb-2">
-              Speak with your mock mentor
-            </h1>
-            <p className="text-[#8D8175] text-xs md:text-sm font-normal truncate max-w-2xl">
-              Listen to each question, answer by voice, and continue the interview flow.
-            </p>
-          </div>
+      {/* Slim Sticky Header */}
+      <header className="sticky top-0 z-20 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] py-3 md:py-4 transition-all duration-200 shadow-sm">
+        <div className="flex items-center px-4 md:px-12 max-w-6xl mx-auto relative">
+          
           <Button
             asChild
             variant="outline"
-            className="shrink-0 border-[#D8CDBD] bg-[#FFFDF8] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-2xl shadow-sm transition-all self-start sm:self-auto"
+            className="border-[#D8CDBD] bg-[#FFFDF8] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-full sm:rounded-2xl shadow-sm transition-all h-9 px-3 sm:px-4 shrink-0 relative z-10"
           >
-            <Link href="/interview">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+            <Link href="/interview" className="flex items-center">
+              <ArrowLeft className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Back</span>
             </Link>
           </Button>
-        </div>
-      </div>
 
-      <main className="mx-auto flex w-full max-w-6xl flex-col px-5 md:px-12 py-8 md:py-10 flex-1">
+          {/* Absolute centered mobile title */}
+          <span className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-[#2B2118] sm:hidden truncate">
+            Active Session
+          </span>
+
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 pb-12 flex flex-col">
         
+        {/* Page Titles - Moved out of the sticky header */}
+        <div className="mb-8 md:mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] shadow-sm">
+            <Sparkles className="w-3.5 h-3.5" />
+            Voice interview session
+          </div>
+          <h1 className="text-2xl md:text-4xl font-medium tracking-tight text-[#2B2118] mb-1 md:mb-2">
+            Speak with your mock mentor
+          </h1>
+          <p className="text-[#8D8175] text-sm md:text-base font-normal max-w-2xl">
+            Listen to each question, answer by voice, and continue the interview flow.
+          </p>
+        </div>
+
         {generatingReport ? (
           <div className="flex flex-1 flex-col items-center justify-center p-8 md:p-10 rounded-2xl bg-[#FFFDF8] border border-[#D8CDBD] shadow-sm mt-4">
             <Sparkles className="w-8 h-8 text-[#8C5A3C] animate-pulse mb-4" />
@@ -448,8 +459,8 @@ int main() {
             </p>
           </div>
         ) : (
-          <Card className="flex flex-col min-h-125 flex-1 overflow-hidden rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
-            <CardHeader className="border-b border-[#D8CDBD] bg-[#FBF7EF] pb-5 pt-6 px-6 md:px-8">
+          <Card className="flex flex-col min-h-120 flex-1 overflow-hidden rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
+            <CardHeader className="border-b border-[#D8CDBD] bg-[#FBF7EF] pb-5 pt-6 px-5 sm:px-6 md:px-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest font-medium text-[#8D8175]">
@@ -466,7 +477,7 @@ int main() {
                   </div>
                 </div>
 
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] px-3.5 py-1.5 text-xs font-medium text-[#5C5147] shadow-sm shrink-0">
+                <div className="inline-flex self-start sm:self-auto items-center gap-2 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] px-3.5 py-1.5 text-xs font-medium text-[#5C5147] shadow-sm shrink-0">
                   <span
                     className={`size-2.5 rounded-full ${
                       isListening
@@ -501,7 +512,7 @@ int main() {
                 <div className="pointer-events-none absolute inset-x-8 bottom-8 h-px bg-linear-to-r from-transparent via-[#8C5A3C]/20 to-transparent" />
 
                 {/* Main Avatar / Mic Circle */}
-                <div className="relative mb-10 flex size-32 items-center justify-center rounded-full border border-[#8C5A3C]/20 bg-[#8C5A3C]/5 text-[#8C5A3C] shadow-[0_0_0_12px_rgba(140,90,60,0.03),0_20px_60px_-20px_rgba(140,90,60,0.2)]">
+                <div className="relative mb-8 sm:mb-10 flex size-28 sm:size-32 items-center justify-center rounded-full border border-[#8C5A3C]/20 bg-[#8C5A3C]/5 text-[#8C5A3C] shadow-[0_0_0_12px_rgba(140,90,60,0.03),0_20px_60px_-20px_rgba(140,90,60,0.2)]">
                   <div
                     className={`absolute inset-0 rounded-full border border-[#8C5A3C]/30 ${
                       isSpeaking || isListening ? "animate-ping" : ""
@@ -509,57 +520,57 @@ int main() {
                   />
                   <div className="absolute inset-3 rounded-full border border-[#8C5A3C]/20" />
                   {isSpeaking ? (
-                    <Volume2 className="relative size-12 animate-pulse" />
+                    <Volume2 className="relative size-10 sm:size-12 animate-pulse" />
                   ) : (
-                    <Bot className="relative size-12" />
+                    <Bot className="relative size-10 sm:size-12" />
                   )}
                 </div>
 
                 {/* Audio Visualizer Bars */}
-                <div className="mb-10 flex h-24 w-full max-w-2xl items-center justify-center gap-2 rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] px-4 shadow-sm">
+                <div className="mb-8 sm:mb-10 flex h-20 sm:h-24 w-full max-w-2xl items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] px-4 shadow-sm overflow-hidden">
                   <span
-                    className={`w-1.5 rounded-full bg-[#8C5A3C]/40 ${isSpeaking || isListening ? "h-8 animate-pulse" : "h-4"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#8C5A3C]/40 ${isSpeaking || isListening ? "h-6 sm:h-8 animate-pulse" : "h-3 sm:h-4"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#A06A47]/50 ${isSpeaking || isListening ? "h-14 animate-pulse" : "h-8"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#A06A47]/50 ${isSpeaking || isListening ? "h-10 sm:h-14 animate-pulse" : "h-6 sm:h-8"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#8C5A3C]/60 ${isSpeaking || isListening ? "h-10 animate-pulse" : "h-5"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#8C5A3C]/60 ${isSpeaking || isListening ? "h-8 sm:h-10 animate-pulse" : "h-4 sm:h-5"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#A06A47]/70 ${isSpeaking || isListening ? "h-20 animate-pulse" : "h-10"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#A06A47]/70 ${isSpeaking || isListening ? "h-14 sm:h-20 animate-pulse" : "h-8 sm:h-10"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#8C5A3C]/70 ${isSpeaking || isListening ? "h-12 animate-pulse" : "h-6"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#8C5A3C]/70 ${isSpeaking || isListening ? "h-10 sm:h-12 animate-pulse" : "h-5 sm:h-6"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#A06A47]/80 ${isSpeaking || isListening ? "h-16 animate-pulse" : "h-9"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#A06A47]/80 ${isSpeaking || isListening ? "h-12 sm:h-16 animate-pulse" : "h-7 sm:h-9"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#8C5A3C]/80 ${isSpeaking || isListening ? "h-9 animate-pulse" : "h-5"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#8C5A3C]/80 ${isSpeaking || isListening ? "h-7 sm:h-9 animate-pulse" : "h-4 sm:h-5"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#A06A47]/70 ${isSpeaking || isListening ? "h-20 animate-pulse" : "h-11"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#A06A47]/70 ${isSpeaking || isListening ? "h-14 sm:h-20 animate-pulse" : "h-8 sm:h-11"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#8C5A3C]/70 ${isSpeaking || isListening ? "h-12 animate-pulse" : "h-7"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#8C5A3C]/70 ${isSpeaking || isListening ? "h-10 sm:h-12 animate-pulse" : "h-5 sm:h-7"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#A06A47]/60 ${isSpeaking || isListening ? "h-16 animate-pulse" : "h-8"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#A06A47]/60 ${isSpeaking || isListening ? "h-12 sm:h-16 animate-pulse" : "h-6 sm:h-8"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#8C5A3C]/55 ${isSpeaking || isListening ? "h-10 animate-pulse" : "h-5"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#8C5A3C]/55 ${isSpeaking || isListening ? "h-8 sm:h-10 animate-pulse" : "h-4 sm:h-5"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#A06A47]/45 ${isSpeaking || isListening ? "h-14 animate-pulse" : "h-7"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#A06A47]/45 ${isSpeaking || isListening ? "h-10 sm:h-14 animate-pulse" : "h-5 sm:h-7"}`}
                   />
                   <span
-                    className={`w-1.5 rounded-full bg-[#8C5A3C]/40 ${isSpeaking || isListening ? "h-8 animate-pulse" : "h-4"}`}
+                    className={`w-1 sm:w-1.5 rounded-full bg-[#8C5A3C]/40 ${isSpeaking || isListening ? "h-6 sm:h-8 animate-pulse" : "h-3 sm:h-4"}`}
                   />
                 </div>
 
                 <div className="max-w-xl space-y-3">
-                  <p className="text-xs font-medium uppercase tracking-widest text-[#8D8175]">
+                  <p className="text-[10px] sm:text-xs font-medium uppercase tracking-widest text-[#8D8175]">
                     {fetchingFollowUp
                       ? "Preparing follow-up"
                       : isSpeaking
@@ -570,7 +581,7 @@ int main() {
                             ? "You are answering"
                             : "Waiting for your answer"}
                   </p>
-                  <h2 className="text-2xl font-medium tracking-tight text-[#2B2118] sm:text-3xl">
+                  <h2 className="text-xl font-medium tracking-tight text-[#2B2118] sm:text-3xl">
                     Voice-only interview
                   </h2>
                   <p className="min-h-12 text-sm leading-relaxed text-[#5C5147] sm:text-base">
@@ -585,26 +596,26 @@ int main() {
 
               {/* Action Controls */}
               {isInterviewCompleted ? (
-                <div className="flex flex-wrap items-center justify-center gap-4">
-                  <div className="inline-flex h-12 items-center gap-2 rounded-full border border-[#2A9D8F]/30 bg-[#2A9D8F]/10 px-5 text-[#2A9D8F] font-medium">
+                <div className="flex flex-col sm:flex-row w-full sm:w-auto items-center justify-center gap-3 sm:gap-4">
+                  <div className="inline-flex w-full sm:w-auto justify-center h-12 items-center gap-2 rounded-full border border-[#2A9D8F]/30 bg-[#2A9D8F]/10 px-5 text-[#2A9D8F] font-medium text-sm sm:text-base">
                     <SparklesIcon className="w-4 h-4" />
                     <p>Interview completed!</p>
                   </div>
                   <Button
                     onClick={handleGenerateReport}
-                    className="h-12 rounded-full px-6 bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] shadow-md transition-all font-medium"
+                    className="h-12 w-full sm:w-auto rounded-full px-6 bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] shadow-md transition-all font-medium"
                   >
                     Generate Report
                   </Button>
                 </div>
               ) : (
-                <div className="flex flex-wrap items-center justify-center gap-4">
+                <div className="flex flex-col sm:flex-row w-full sm:w-auto items-center justify-center gap-3 sm:gap-4">
                   <Button
                     onClick={handleRelisten}
                     disabled={!latestAssistantText || isSpeaking}
                     type="button"
                     variant="outline"
-                    className="h-12 rounded-full border-[#D8CDBD] bg-[#FFFDF8] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] px-6 shadow-sm transition-all"
+                    className="h-12 w-full sm:w-auto rounded-full border-[#D8CDBD] bg-[#FFFDF8] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] px-6 shadow-sm transition-all"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Relisten
@@ -619,7 +630,7 @@ int main() {
                         fetchingFollowUp || isSpeaking || isTranscribing
                       }
                       type="button"
-                      className="h-12 rounded-full px-6 bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] shadow-md transition-all font-medium"
+                      className="h-12 w-full sm:w-auto rounded-full px-6 bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] shadow-md transition-all font-medium"
                     >
                       <Mic className="w-4 h-4 mr-2" />
                       {isListening ? "Submit Answer" : "Start Answer"}
@@ -632,23 +643,23 @@ int main() {
                   >
                     {iscodeEditorReq && (
                       <DialogTrigger asChild>
-                        <Button className="h-12 rounded-full px-6 bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] shadow-md transition-all font-medium">
+                        <Button className="h-12 w-full sm:w-auto rounded-full px-6 bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] shadow-md transition-all font-medium">
                           Open Editor
                         </Button>
                       </DialogTrigger>
                     )}
 
-                    <DialogContent className="w-full h-[80vh] flex flex-col bg-[#FFFDF8] border-[#D8CDBD]">
-                      <DialogHeader>
-                        <DialogTitle className="text-[#2B2118]">Coding Challenge</DialogTitle>
-                        <DialogDescription className="text-[#8D8175]">
+                    <DialogContent className="w-[95vw] sm:w-full h-[85vh] sm:h-[80vh] flex flex-col bg-[#FFFDF8] border-[#D8CDBD] p-4 sm:p-6 rounded-2xl">
+                      <DialogHeader className="mb-2">
+                        <DialogTitle className="text-[#2B2118] text-lg sm:text-xl">Coding Challenge</DialogTitle>
+                        <DialogDescription className="text-[#8D8175] text-xs sm:text-sm">
                           Use the editor below to solve the coding problem. You
                           can submit your answer at any time.
                         </DialogDescription>
                       </DialogHeader>
 
                       {/* Editor Area */}
-                      <div className="flex-1 overflow-hidden rounded-xl border border-[#D8CDBD] p-4 bg-[#FBF7EF]">
+                      <div className="flex-1 overflow-hidden rounded-xl border border-[#D8CDBD] p-2 sm:p-4 bg-[#FBF7EF]">
                         {/* Replace this with Monaco Editor */}
                         <CodeEditor
                           code={code}
@@ -657,12 +668,12 @@ int main() {
                         />
                       </div>
 
-                      <DialogFooter className="mt-4">
+                      <DialogFooter className="mt-4 gap-2 sm:gap-0">
                         <DialogClose asChild>
-                          <Button variant="outline" className="border-[#D8CDBD] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118]">Close</Button>
+                          <Button variant="outline" className="w-full sm:w-auto border-[#D8CDBD] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-xl">Close</Button>
                         </DialogClose>
 
-                        <Button onClick={handleCodeSubmit} className="bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8]">Submit</Button>
+                        <Button onClick={handleCodeSubmit} className="w-full sm:w-auto bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-xl">Submit</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>

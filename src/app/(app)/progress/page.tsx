@@ -18,6 +18,7 @@ import {
   MessageSquareText,
   Users,
   Calendar,
+  ArrowLeft, // Added for mobile header nav
 } from "lucide-react";
 import {
   LineChart,
@@ -186,7 +187,8 @@ export default function ProgressPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F3EBDD] text-[#5C5147] font-sans selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+      // Changed: min-h-screen to min-h-[100dvh]
+      <div className="flex min-h-dvh items-center justify-center bg-[#F3EBDD] text-[#5C5147] font-sans selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
         <div className="p-8 md:p-10 rounded-2xl bg-[#FFFDF8] border border-[#D8CDBD] shadow-sm flex flex-col items-center gap-5">
           <div className="flex w-12 h-12 items-center justify-center rounded-xl bg-[#FBF7EF] border border-[#D8CDBD]">
             <TrendingUp className="w-5 h-5 text-[#8C5A3C] animate-pulse" />
@@ -200,25 +202,49 @@ export default function ProgressPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#F3EBDD] text-[#5C5147] font-sans overflow-auto selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+    // Changed: min-h-[100dvh] and removed overflow-auto
+    <div className="flex flex-col min-h-dvh w-full bg-[#F3EBDD] text-[#5C5147] font-sans selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
       
-      {/* Top Header - Paper Layer */}
-      <div className="sticky top-0 z-10 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] pt-6 pb-4 md:pt-8 transition-all duration-200 shadow-sm">
-        <div className="px-5 md:px-12 max-w-7xl mx-auto">
+      {/* Slim Sticky Header */}
+      <header className="sticky top-0 z-20 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] py-3 md:py-4 transition-all duration-200 shadow-sm">
+        <div className="flex items-center justify-between px-4 md:px-12 max-w-7xl mx-auto gap-4">
+          <Button
+            asChild
+            variant="outline"
+            className="border-[#D8CDBD] bg-[#FFFDF8] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-full sm:rounded-2xl shadow-sm transition-all h-9 px-3 sm:px-4 shrink-0"
+          >
+            <Link href="/dashboard" className="flex items-center">
+              <ArrowLeft className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Link>
+          </Button>
+
+          {/* Mobile-only page title */}
+          <span className="text-sm font-medium text-[#2B2118] sm:hidden truncate">
+            Analytics
+          </span>
+
+          {/* Invisible spacer to perfectly center the mobile title */}
+          <div className="w-15 sm:hidden pointer-events-none" />
+        </div>
+      </header>
+
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 pb-12">
+        
+        {/* Page Titles - Moved out of the sticky header */}
+        <div className="mb-8 md:mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] shadow-sm">
             <TrendingUp className="w-3.5 h-3.5" />
             Progress & Analytics
           </div>
-          <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-[#2B2118] truncate mb-1 md:mb-2">
+          <h1 className="text-2xl md:text-4xl font-medium tracking-tight text-[#2B2118] mb-1 md:mb-2">
             Your interview journey
           </h1>
-          <p className="text-[#8D8175] text-xs md:text-sm font-normal max-w-2xl truncate">
+          <p className="text-[#8D8175] text-sm md:text-base font-normal max-w-2xl">
             Track your performance, identify patterns, and see how you're improving over time.
           </p>
         </div>
-      </div>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-5 md:px-12 py-8 md:py-10">
         {error && (
           <div className="mb-8 p-5 rounded-2xl border border-[#D8CDBD] bg-[#FBF7EF] shadow-sm">
             <p className="text-sm text-[#8C5A3C] font-medium">{error}</p>
@@ -244,7 +270,7 @@ export default function ProgressPage() {
         ) : (
           <>
             {/* Summary Stats */}
-            <section className="mb-10 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <section className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <StatCard
                 label="Average Overall"
                 value={stats.avgOverall}
@@ -280,13 +306,13 @@ export default function ProgressPage() {
             <section className="mb-10 grid gap-6 lg:grid-cols-3">
               {/* Score Trend Chart */}
               <Card className="col-span-2 rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
-                <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-6 md:px-8">
+                <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-5 sm:px-6 md:px-8">
                   <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">Score Trends</CardTitle>
-                  <CardDescription className="text-sm text-[#8D8175] mt-1">
+                  <CardDescription className="text-xs sm:text-sm text-[#8D8175] mt-1">
                     Your performance across all metrics over time.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-8 pb-6 px-4 md:px-8">
+                <CardContent className="pt-8 pb-6 px-2 sm:px-4 md:px-8 overflow-hidden">
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={scoreHistory}>
                       <CartesianGrid
@@ -361,13 +387,13 @@ export default function ProgressPage() {
 
               {/* Category Breakdown */}
               <Card className="rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
-                <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-6 md:px-8">
+                <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-5 sm:px-6 md:px-8">
                   <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">Category Breakdown</CardTitle>
-                  <CardDescription className="text-sm text-[#8D8175] mt-1">
+                  <CardDescription className="text-xs sm:text-sm text-[#8D8175] mt-1">
                     Average performance by category.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-8 pb-6 px-4">
+                <CardContent className="pt-8 pb-6 px-4 overflow-hidden">
                   {categoryBreakdown.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
@@ -377,8 +403,8 @@ export default function ProgressPage() {
                           cy="50%"
                           labelLine={false}
                           label={({ name, value }) => `${name}: ${value}%`}
-                          outerRadius={90}
-                          innerRadius={60}
+                          outerRadius={80}
+                          innerRadius={50}
                           dataKey="value"
                           stroke="#FFFDF8"
                           strokeWidth={2}
@@ -416,13 +442,13 @@ export default function ProgressPage() {
             {/* Score Distribution */}
             <section className="mb-12">
               <Card className="rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
-                <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-6 md:px-8">
+                <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-5 sm:px-6 md:px-8">
                   <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">Score Distribution</CardTitle>
-                  <CardDescription className="text-sm text-[#8D8175] mt-1">
+                  <CardDescription className="text-xs sm:text-sm text-[#8D8175] mt-1">
                     Comparison of average scores across all metrics.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-8 pb-6 px-4 md:px-8">
+                <CardContent className="pt-8 pb-6 px-2 sm:px-4 md:px-8 overflow-hidden">
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={categoryBreakdown} margin={{ top: 20 }}>
                       <CartesianGrid
@@ -433,10 +459,11 @@ export default function ProgressPage() {
                       <XAxis
                         dataKey="name"
                         stroke="#8D8175"
-                        tick={{ fill: '#8D8175', fontSize: 12 }}
+                        tick={{ fill: '#8D8175', fontSize: 10 }}
                         axisLine={false}
                         tickLine={false}
                         dy={10}
+                        interval={0} // forces all labels to show on mobile
                       />
                       <YAxis
                         stroke="#8D8175"
@@ -459,7 +486,7 @@ export default function ProgressPage() {
                       <Bar
                         dataKey="value"
                         radius={[6, 6, 0, 0]}
-                        barSize={60}
+                        barSize={40}
                       >
                         {categoryBreakdown.map((entry, index) => (
                           <Cell
@@ -485,7 +512,7 @@ export default function ProgressPage() {
                 </p>
               </div>
 
-              <div className="grid gap-4 md:gap-6 md:grid-cols-2">
+              <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
                 {sessions
                   .sort(
                     (a, b) =>

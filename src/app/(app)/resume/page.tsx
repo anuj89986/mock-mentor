@@ -9,12 +9,14 @@ import {
   Trash2,
   Download,
   Sparkles,
+  ArrowLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import axios from "axios";
 import { toast } from "sonner";
+import Link from "next/link"; // Added Link import for the back button
 
 interface Resume {
   _id: string;
@@ -54,7 +56,7 @@ export default function ResumePage() {
 
   if (!session) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F3EBDD] p-6 gap-6 text-[#5C5147] selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+      <div className="flex flex-col items-center justify-center min-h-dvh bg-[#F3EBDD] p-6 gap-6 text-[#5C5147] selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
         <div className="text-base md:text-lg font-medium tracking-wide text-center text-[#2B2118]">
           Please sign in to upload a resume.
         </div>
@@ -131,30 +133,52 @@ export default function ResumePage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#F3EBDD] text-[#5C5147] font-sans overflow-hidden selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
-      <main className="flex-1 overflow-auto pb-10">
-        
-        {/* Top Header - Paper Layer */}
-        <div className="sticky top-0 z-10 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] pt-6 pb-4 md:pt-8 transition-all duration-200 shadow-sm">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 md:px-12 max-w-6xl mx-auto gap-4">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-[#2B2118] truncate mb-1 md:mb-2">
-                Resume Management
-              </h1>
-              <p className="text-[#8D8175] text-xs md:text-sm font-normal truncate">
-                Upload and manage your resumes for personalized interviews.
-              </p>
-            </div>
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#FFFDF8] border border-[#D8CDBD] flex items-center justify-center text-[#8C5A3C] shrink-0 shadow-sm">
-              <span className="font-medium text-sm md:text-base">
-                {session.user?.name?.charAt(0).toUpperCase()}
-              </span>
-            </div>
+    // Changed: min-h-[100dvh] for native body scrolling, removed overflow-hidden
+    <div className="min-h-dvh flex flex-col w-full bg-[#F3EBDD] text-[#5C5147] font-sans selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+      
+      {/* Sticky Header - Made slim, added back button and centered title */}
+      <header className="sticky top-0 z-20 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] py-3 md:py-4 transition-all duration-200 shadow-sm">
+        <div className="flex items-center justify-between px-4 md:px-12 max-w-6xl mx-auto gap-4 relative">
+          
+          <Button
+            asChild
+            variant="outline"
+            className="border-[#D8CDBD] bg-[#FFFDF8] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-full sm:rounded-2xl shadow-sm transition-all h-9 px-3 sm:px-4 shrink-0 relative z-10"
+          >
+            <Link href="/dashboard" className="flex items-center">
+              <ArrowLeft className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Link>
+          </Button>
+
+          {/* Absolute centered mobile title */}
+          <span className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-[#2B2118] sm:hidden truncate">
+            Resumes
+          </span>
+
+          <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-[#FFFDF8] border border-[#D8CDBD] flex items-center justify-center text-[#8C5A3C] shrink-0 shadow-sm relative z-10">
+            <span className="font-medium text-sm md:text-base">
+              {session.user?.name?.charAt(0).toUpperCase()}
+            </span>
           </div>
+          
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 pb-12">
+        
+        {/* Page Titles - Moved out of the sticky header */}
+        <div className="mb-8 md:mb-10">
+          <h1 className="text-2xl md:text-4xl font-medium tracking-tight text-[#2B2118] mb-1 md:mb-2">
+            Resume Management
+          </h1>
+          <p className="text-[#8D8175] text-sm md:text-base font-normal max-w-2xl">
+            Upload and manage your resumes for personalized interviews.
+          </p>
         </div>
 
-        {/* Content */}
-        <div className="px-5 md:px-12 py-8 md:py-10 space-y-6 sm:space-y-8 w-full max-w-6xl mx-auto">
+        <div className="space-y-6 sm:space-y-8 w-full">
           
           {/* Alerts */}
           {error && (

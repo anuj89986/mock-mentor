@@ -255,7 +255,7 @@ export default function ReportPage() {
   if (loading) {
     return (
       <Shell>
-        <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="flex min-h-dvh items-center justify-center px-4">
           <div className="p-8 md:p-10 rounded-2xl bg-[#FFFDF8] border border-[#D8CDBD] shadow-sm flex flex-col items-center gap-5">
             <div className="flex w-12 h-12 items-center justify-center rounded-xl bg-[#FBF7EF] border border-[#D8CDBD]">
               <Sparkles className="w-5 h-5 text-[#8C5A3C] animate-pulse" />
@@ -275,7 +275,7 @@ export default function ReportPage() {
   if (error || !report) {
     return (
       <Shell>
-        <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center px-4 py-10">
+        <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col items-center justify-center px-4 py-10 flex-1">
           <Card className="w-full rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
             <CardContent className="flex flex-col items-center gap-5 px-8 py-12 text-center">
               <div className="flex w-14 h-14 items-center justify-center rounded-2xl bg-[#E76F51]/10 border border-[#E76F51]/20">
@@ -318,35 +318,49 @@ export default function ReportPage() {
 
   return (
     <Shell>
-      <main className="mx-auto w-full max-w-5xl px-5 md:px-12 py-8 md:py-12">
-
-        {/* ── Header ── */}
-        <header className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] px-3 py-1 text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] shadow-sm">
-              <Sparkles className="w-3.5 h-3.5" />
-              Interview Report
-            </div>
-
-            <h1 className="text-3xl font-medium tracking-tight text-[#2B2118] sm:text-4xl">
-              Session Report
-            </h1>
-
-            <div className="flex flex-wrap items-center gap-2.5 text-sm">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-[#D8CDBD] bg-[#FFFDF8] px-2.5 py-1 text-xs font-medium text-[#8D8175] shadow-sm">
-                <Clock3 className="w-3.5 h-3.5 text-[#8C5A3C]" />
-                {reportDate}
-              </span>
-            </div>
-          </div>
-
-          <Button asChild className="shrink-0 bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-2xl px-6 py-5 shadow-md transition-all duration-200 ease-out font-medium">
-            <Link href="/dashboard">
-              Dashboard
-              <ChevronRight className="w-4 h-4 ml-1" />
+      {/* ── Slim Sticky Header ── */}
+      <header className="sticky top-0 z-20 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] py-3 md:py-4 transition-all duration-200 shadow-sm">
+        <div className="flex items-center justify-between px-4 md:px-12 max-w-5xl mx-auto relative">
+          <Button
+            asChild
+            variant="outline"
+            className="border-[#D8CDBD] bg-[#FFFDF8] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-full sm:rounded-2xl shadow-sm transition-all h-9 px-3 sm:px-4 shrink-0 relative z-10"
+          >
+            <Link href="/dashboard" className="flex items-center">
+              <ArrowLeft className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Dashboard</span>
             </Link>
           </Button>
-        </header>
+
+          {/* Absolute centered mobile title */}
+          <span className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-[#2B2118] sm:hidden truncate">
+            Report
+          </span>
+
+          <div className="w-15 sm:hidden pointer-events-none" /> {/* Spacer for flexbox balance */}
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 md:px-12 py-6 md:py-10 pb-12 flex-1">
+
+        {/* ── Page Titles (Moved out of sticky header) ── */}
+        <div className="mb-8 md:mb-10 space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] px-3 py-1 text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] shadow-sm">
+            <Sparkles className="w-3.5 h-3.5" />
+            Interview Report
+          </div>
+
+          <h1 className="text-3xl font-medium tracking-tight text-[#2B2118] sm:text-4xl">
+            Session Report
+          </h1>
+
+          <div className="flex flex-wrap items-center gap-2.5 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-[#D8CDBD] bg-[#FFFDF8] px-2.5 py-1 text-xs font-medium text-[#8D8175] shadow-sm">
+              <Clock3 className="w-3.5 h-3.5 text-[#8C5A3C]" />
+              {reportDate}
+            </span>
+          </div>
+        </div>
 
         {/* ── Score hero ── */}
         <section className="mb-8">
@@ -378,13 +392,13 @@ export default function ReportPage() {
         {/* ── Summary ── */}
         <section className="mb-8">
           <Card className="rounded-2xl border border-[#D8CDBD] bg-[#FFFDF8] shadow-sm">
-            <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-6 md:px-8">
+            <CardHeader className="border-b border-[#D8CDBD] pb-5 pt-6 px-5 sm:px-6 md:px-8">
               <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">Summary</CardTitle>
               <CardDescription className="text-sm text-[#8D8175] mt-1">
                 High-level overview of the session outcome.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-8 pt-6 px-6 md:px-8 pb-8">
+            <CardContent className="space-y-8 pt-6 px-5 sm:px-6 md:px-8 pb-8">
               <p className="text-sm md:text-base leading-relaxed text-[#5C5147]">
                 {report.summary || 'No summary was generated for this report.'}
               </p>
@@ -426,9 +440,10 @@ export default function ReportPage() {
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 
+// Changed: Removed overflow-auto and switched to min-h-[100dvh]
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#F3EBDD] text-[#5C5147] font-sans overflow-auto selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
+    <div className="flex flex-col min-h-dvh w-full bg-[#F3EBDD] text-[#5C5147] font-sans selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
       {children}
     </div>
   )
