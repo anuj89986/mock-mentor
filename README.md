@@ -4,11 +4,26 @@ Mock Mentor is a full-stack interview preparation platform designed for professi
 
 Unlike traditional mock interview tools, Mock Mentor is built around a persistent coaching experience: users upload their resume, enter a guided interview session, and receive feedback that reflects both their answers and their background.
 
-## Demo
+## Screenshots
+- Screenshots:
 
-- Live Demo: Coming soon
-- Screenshots: Coming soon
-- Demo Video: Coming soon
+    ![Landing page](public/landing_page.png)
+
+    ![Login page](public/login_page.png)
+
+    ![Dashboard](public/dashboard.png)
+
+    ![New interview](public/creating_interview.png)
+
+    ![Interview session](public/interview_session.png)
+
+    ![Voice interview](public/coding_session.png)
+
+    ![Session reports](public/session_reports.png)
+
+    ![Progress charts](public/progress_charts.png)
+
+    ![Mobile view](public/mobile_view.png)
 
 ## Features
 
