@@ -1,14 +1,27 @@
 import OpenAI from "openai";
 
-export const openrouter = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
+let openrouter: OpenAI | null = null;
 
-  defaultHeaders: {
-    "HTTP-Referer": "http://localhost:3000",
-    "X-Title": "AI Interview App",
-  },
-});
+export function getOpenRouter() {
+  if (!openrouter) {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      throw new Error("OPENROUTER_API_KEY is not set");
+    }
+
+    openrouter = new OpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey,
+      defaultHeaders: {
+        "HTTP-Referer": "http://localhost:3000",
+        "X-Title": "AI Interview App",
+      },
+    });
+  }
+
+  return openrouter;
+}
 
 export async function generateReport(resumeText: string, interviewData: any) {
   const prompt = `
@@ -68,6 +81,7 @@ Rules:
 `;
 
   try {
+    const openrouter = getOpenRouter();
     const completion = await openrouter.chat.completions.create({
       model: "nvidia/nemotron-3-ultra-550b-a55b:free",
 
@@ -210,6 +224,7 @@ ${answer}
 `;
 
   try {
+    const openrouter = getOpenRouter();
     const completion = await openrouter.chat.completions.create({
       model: "nvidia/nemotron-3-super-120b-a12b:free",
       messages: [

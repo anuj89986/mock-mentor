@@ -1,15 +1,28 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+let model: ReturnType<GoogleGenerativeAI["getGenerativeModel"]> | null = null;
 
-export const model = genAI.getGenerativeModel({
-  model: "gemini-3.1-flash-lite",
-  generationConfig: {
-    temperature: 0.85,
-    responseMimeType: "application/json",
-  },
-});
+export function getGeminiModel() {
+  if (!model) {
+    const apiKey = process.env.GEMINI_API_KEY;
 
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not set");
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+
+    model = genAI.getGenerativeModel({
+      model: "gemini-3.1-flash-lite",
+      generationConfig: {
+        temperature: 0.85,
+        responseMimeType: "application/json",
+      },
+    });
+  }
+
+  return model;
+}
 export async function generateQuestions(
   resumeText: string,
   interviewStyle: string,
@@ -66,6 +79,7 @@ Format:
 Resume:
 ${resumeText}`;
 
+  const model = getGeminiModel();
   const result = await model.generateContent(prompt);
   const text = result.response.text();
 
@@ -86,17 +100,17 @@ export async function generateNextQuestion(
 ) {
   // Map score to a difficulty band
   const difficulty =
-  report.overallScore <= 4
-    ? "Junior level. Test fundamentals before increasing complexity."
-    : report.overallScore <= 7
-    ? "Mid-level. Probe understanding with practical scenarios."
-    : "Senior level. Ask challenging real-world and edge-case questions.";
+    report.overallScore <= 4
+      ? "Junior level. Test fundamentals before increasing complexity."
+      : report.overallScore <= 7
+        ? "Mid-level. Probe understanding with practical scenarios."
+        : "Senior level. Ask challenging real-world and edge-case questions.";
 
-const previous = previousQuestions.length
-  ? previousQuestions.map((q, i) => `${i + 1}. ${q}`).join("\n")
-  : "None";
+  const previous = previousQuestions.length
+    ? previousQuestions.map((q, i) => `${i + 1}. ${q}`).join("\n")
+    : "None";
 
-const prompt = `
+  const prompt = `
 You are an experienced Senior Software Engineer conducting a LIVE technical interview.
 
 =========================================
@@ -314,10 +328,10 @@ Example (verbal):
   "questionText": "Alright, that's good. Why did you choose MongoDB over PostgreSQL for your project, and what trade-offs did you consider?",
   "questionType": "verbal"
 }
-`;;
-
-const result = await model.generateContent(prompt);
-return result.response.text();
+`;
+  const model = getGeminiModel();
+  const result = await model.generateContent(prompt);
+  return result.response.text();
 }
 
 export async function generateFollowUp(
@@ -402,7 +416,7 @@ Rules:
 * No extra text
 * Strictly valid JSON
 `;
-
+  const model = getGeminiModel();
   const result = await model.generateContent(prompt);
   const text = result.response.text();
 

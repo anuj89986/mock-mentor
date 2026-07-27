@@ -83,6 +83,7 @@ const page = ({ params }: PageProps) => {
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
   const { speak, stop, isSpeaking } = useTextToSpeech();
   const [iscodeEditorReq, setIsCodeEditorReq] = useState<boolean>(false);
+  const [followUpError, setFollowUpError] = useState<boolean>(false);
   const [sessionScore, setSessionScore] = useState<{
     overallScore: number;
     technicalScore: number;
@@ -203,12 +204,14 @@ int main() {
       } else {
         setIsCodeEditorReq(false);
       }
+      setFollowUpError(false);
       return {
         question: res.data.followUpQuestion?.followUpQuestion as string,
         score: res.data.score ?? null,
       };
     } catch (error) {
       console.error("Error fetching follow-up question:", error);
+      setFollowUpError(true);
       return { question: "", score: null };
     } finally {
       setFetchingFollowUp(false);
@@ -407,11 +410,9 @@ int main() {
   return (
     // Changed: min-h-[100dvh] for native body scrolling, removed overflow-auto
     <div className="min-h-dvh flex flex-col w-full bg-[#F3EBDD] text-[#5C5147] font-sans selection:bg-[#8C5A3C] selection:text-[#FFFDF8]">
-      
       {/* Slim Sticky Header */}
       <header className="sticky top-0 z-20 w-full bg-[#FBF7EF]/95 backdrop-blur-xl border-b border-[#D8CDBD] py-3 md:py-4 transition-all duration-200 shadow-sm">
         <div className="flex items-center px-4 md:px-12 max-w-6xl mx-auto relative">
-          
           <Button
             asChild
             variant="outline"
@@ -427,13 +428,11 @@ int main() {
           <span className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-[#2B2118] sm:hidden truncate">
             Active Session
           </span>
-
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 pb-12 flex flex-col">
-        
         {/* Page Titles - Moved out of the sticky header */}
         <div className="mb-8 md:mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full border border-[#D8CDBD] bg-[#FFFDF8] text-[10px] md:text-xs font-medium uppercase tracking-widest text-[#8C5A3C] shadow-sm">
@@ -444,7 +443,8 @@ int main() {
             Speak with your mock mentor
           </h1>
           <p className="text-[#8D8175] text-sm md:text-base font-normal max-w-2xl">
-            Listen to each question, answer by voice, and continue the interview flow.
+            Listen to each question, answer by voice, and continue the interview
+            flow.
           </p>
         </div>
 
@@ -470,9 +470,12 @@ int main() {
                     Live voice conversation
                   </div>
                   <div>
-                    <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">Mock Mentor</CardTitle>
+                    <CardTitle className="text-lg md:text-xl font-medium text-[#2B2118]">
+                      Mock Mentor
+                    </CardTitle>
                     <CardDescription className="text-sm text-[#8D8175] mt-1.5 max-w-sm">
-                      The mentor speaks automatically. Use relisten whenever you need the prompt again.
+                      The mentor speaks automatically. Use relisten whenever you
+                      need the prompt again.
                     </CardDescription>
                   </div>
                 </div>
@@ -503,10 +506,8 @@ int main() {
             </CardHeader>
 
             <CardContent className="flex flex-1 flex-col items-center justify-center gap-8 p-6 md:p-10 text-center">
-              
               {/* Central Visualization Area */}
               <div className="relative flex w-full max-w-3xl flex-col items-center rounded-[2rem] border border-[#D8CDBD] bg-[#FBF7EF] px-5 py-10 shadow-sm sm:px-10 overflow-hidden">
-                
                 {/* Decorative subtle lines */}
                 <div className="pointer-events-none absolute inset-x-8 top-8 h-px bg-linear-to-r from-transparent via-[#8C5A3C]/20 to-transparent" />
                 <div className="pointer-events-none absolute inset-x-8 bottom-8 h-px bg-linear-to-r from-transparent via-[#8C5A3C]/20 to-transparent" />
@@ -591,6 +592,22 @@ int main() {
                         ? "Listening to your response..."
                         : "Start listening when you are ready to answer."}
                   </p>
+                  {followUpError && (
+                    <p className="text-sm text-[#B3541E]">
+                      Something went wrong generating the next question.{" "}
+                      <button
+                        className="underline font-medium"
+                        onClick={() =>
+                          handleResponse({
+                            text: allResponses[allResponses.length - 1]
+                              .response,
+                          })
+                        }
+                      >
+                        Retry
+                      </button>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -636,7 +653,7 @@ int main() {
                       {isListening ? "Submit Answer" : "Start Answer"}
                     </Button>
                   )}
-                  
+
                   <Dialog
                     open={iscodeEditorOpen}
                     onOpenChange={setIsCodeEditorOpen}
@@ -651,7 +668,9 @@ int main() {
 
                     <DialogContent className="w-[95vw] sm:w-full h-[85vh] sm:h-[80vh] flex flex-col bg-[#FFFDF8] border-[#D8CDBD] p-4 sm:p-6 rounded-2xl">
                       <DialogHeader className="mb-2">
-                        <DialogTitle className="text-[#2B2118] text-lg sm:text-xl">Coding Challenge</DialogTitle>
+                        <DialogTitle className="text-[#2B2118] text-lg sm:text-xl">
+                          Coding Challenge
+                        </DialogTitle>
                         <DialogDescription className="text-[#8D8175] text-xs sm:text-sm">
                           Use the editor below to solve the coding problem. You
                           can submit your answer at any time.
@@ -670,10 +689,20 @@ int main() {
 
                       <DialogFooter className="mt-4 gap-2 sm:gap-0">
                         <DialogClose asChild>
-                          <Button variant="outline" className="w-full sm:w-auto border-[#D8CDBD] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-xl">Close</Button>
+                          <Button
+                            variant="outline"
+                            className="w-full sm:w-auto border-[#D8CDBD] text-[#5C5147] hover:bg-[#FBF7EF] hover:text-[#2B2118] rounded-xl"
+                          >
+                            Close
+                          </Button>
                         </DialogClose>
 
-                        <Button onClick={handleCodeSubmit} className="w-full sm:w-auto bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-xl">Submit</Button>
+                        <Button
+                          onClick={handleCodeSubmit}
+                          className="w-full sm:w-auto bg-[#8C5A3C] hover:bg-[#A06A47] text-[#FFFDF8] rounded-xl"
+                        >
+                          Submit
+                        </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
