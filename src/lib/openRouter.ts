@@ -14,7 +14,7 @@ export function getOpenRouter() {
       baseURL: "https://openrouter.ai/api/v1",
       apiKey,
       defaultHeaders: {
-        "HTTP-Referer": "http://localhost:3000",
+        "HTTP-Referer": "http://mock-mentor-production.up.railway.app",
         "X-Title": "AI Interview App",
       },
     });
