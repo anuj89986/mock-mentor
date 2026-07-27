@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import {
-  ArrowLeft, // Added this import for the back button
+  ArrowLeft,
   ArrowRight,
   CalendarDays,
   PlayCircle,
@@ -16,6 +16,7 @@ import {
   TrendingUp,
   BookOpen,
   Clock3,
+  Trash2,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -49,6 +50,15 @@ export default function Page() {
     }
     fetchSessionsId()
   }, [])
+
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+      await axios.delete('/api/session/delete-session', { data: { sessionId } })
+      setSessions((prevSessions) => prevSessions.filter((s) => s._id !== sessionId))
+    } catch (error) {
+      console.error('Error deleting session:', error)
+    }
+  }
 
   if (!session) {
     return (
@@ -280,6 +290,13 @@ export default function Page() {
                               <ArrowRight className="w-4 h-4 ml-2" />
                             </Link>
                           )}
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteSession(item._id)}
+                          variant="destructive"
+                          className="bg-[#FFFDF8] hover:bg-[#FBF7EF] text-[#5C5147] border border-[#D8CDBD] rounded-xl px-5 sm:px-6 py-5 sm:py-0 h-auto sm:h-15 shadow-sm transition-all font-medium flex-1 sm:flex-none"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>

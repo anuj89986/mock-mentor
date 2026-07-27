@@ -1,65 +1,67 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 
 export default function useTextToSpeech() {
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    const loadVoices = () => {
-      const allVoices = speechSynthesis.getVoices();
-      setVoices(allVoices);
-    };
-
-    loadVoices();
-
-    speechSynthesis.onvoiceschanged = loadVoices;
-  }, []);
-
-  const speak = (
-    text: string,
-    options?: {
-      rate?: number;
-      pitch?: number;
-      volume?: number;
-      voice?: SpeechSynthesisVoice;
-    }
-  ) => {
+  const speak = async (text: string) => {
     if (!text) return;
 
-    speechSynthesis.cancel();
+    stop();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
 
-    utterance.rate = options?.rate || 1;
-    utterance.pitch = options?.pitch || 1;
-    utterance.volume = options?.volume || 1;
+      if (!res.ok) {
+        throw new Error("Failed to generate TTS audio");
+      }
 
-    if (options?.voice) {
-      utterance.voice = options.voice;
-    }
+      const audioBlob = await res.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
 
-    utterance.onstart = () => {
-      setIsSpeaking(true);
-    };
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
 
-    utterance.onend = () => {
+      audio.onplay = () => setIsSpeaking(true);
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+
+      await audio.play();
+    } catch (error) {
+      console.error("Error speaking text:", error);
       setIsSpeaking(false);
-    };
-
-    speechSynthesis.speak(utterance);
+    }
   };
 
   const stop = () => {
-    speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
     setIsSpeaking(false);
   };
 
   return {
     speak,
     stop,
-    voices,
+    voices: [],
     isSpeaking,
   };
 }
