@@ -73,15 +73,11 @@ export default function ResumePage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (
-      file.type === "application/pdf" ||
-      file.type ===
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ) {
+    if (file.type === "application/pdf") {
       setUploadedFile(file);
       setError("");
     } else {
-      setError("Please upload a PDF or Word document");
+      setError("Please upload a PDF document");
       setUploadedFile(null);
     }
   };
@@ -203,7 +199,7 @@ export default function ResumePage() {
                   We analyze your resume to generate personalized mock interviews, highlighting your specific strengths and tailoring questions to your experience level.
                 </p>
                 <p className="text-xs font-medium uppercase tracking-widest text-[#8D8175]">
-                  Supported formats: PDF, DOC, DOCX (Max 10MB)
+                  Supported formats: PDF (Max 10MB)
                 </p>
               </div>
 
@@ -214,7 +210,7 @@ export default function ResumePage() {
                 <input
                   type="file"
                   ref={fileInputRef}
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf"
                   onChange={handleFileChange}
                   className="hidden"
                 />
